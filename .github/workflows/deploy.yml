@@ -38,7 +38,8 @@ jobs:
 
       - name: Upload Binary
         run: |
-          scp \
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_ed25519" \
             ./server \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server
 
