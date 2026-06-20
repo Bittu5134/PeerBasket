@@ -77,7 +77,6 @@ func main() {
 		basketID := c.Param("id")
 		var req JoinRequest
 
-		// Enforce valid JSON payload containing the Peer ID
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body, peer_id is required"})
 			return
@@ -85,58 +84,51 @@ func main() {
 
 		redisKey := fmt.Sprintf("basket:%s", basketID)
 		now := time.Now().UnixMilli()
+		cutoff := now - heartbeatTimeout.Milliseconds()
 
-		// Step A: Update current peer's heartbeat record in Redis
-		err := rdb.HSet(ctx, redisKey, req.PeerID, now).Err()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update connection heartbeat"})
-			return
-		}
-		rdb.Expire(ctx, redisKey, 1*time.Hour)
-
-		// Step B: Extract optional '?limit=' parameter
+		// Extract optional '?limit=' parameter early
 		limitStr := c.DefaultQuery("limit", "100")
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil || limit <= 0 {
 			limit = 100
 		}
 
-		// Step C: Fetch all records in the lobby
-		allPeers, err := rdb.HGetAll(ctx, redisKey).Result()
+		// OPTIMIZATION: Use a Redis pipeline to batch commands into 1 network trip
+		pipe := rdb.Pipeline()
+
+		// 1. Add/update the current peer. Score is the raw numeric timestamp.
+		pipe.ZAdd(ctx, redisKey, redis.Z{
+			Score:  float64(now),
+			Member: req.PeerID,
+		})
+
+		// 2. Clear out all dead peers instantly inside Redis.
+		pipe.ZRemRangeByScore(ctx, redisKey, "-inf", strconv.FormatInt(cutoff, 10))
+
+		// 3. Query only the requested limit of active peers (sorted newest first).
+		// We use limit-1 because stop index is inclusive.
+		peersCmd := pipe.ZRevRange(ctx, redisKey, 0, int64(limit-1))
+
+		// 4. Query total active count in the room efficiently.
+		cardCmd := pipe.ZCard(ctx, redisKey)
+
+		// 5. Keep the basket key alive for an hour
+		pipe.Expire(ctx, redisKey, 1*time.Hour)
+
+		// Execute all 5 commands in a single atomic round-trip
+		_, err = pipe.Exec(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan basket presence"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update cluster state"})
 			return
 		}
 
-		var activePeers []string
-
-		// Step D: Filter alive nodes vs dead records
-		for peerID, timestampStr := range allPeers {
-			timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
-			if err != nil {
-				continue
-			}
-
-			if now-timestamp < heartbeatTimeout.Milliseconds() {
-				activePeers = append(activePeers, peerID)
-			} else {
-				// Wipe stale keys async to maintain light server footprint
-				go rdb.HDel(ctx, redisKey, peerID)
-			}
-		}
-
-		totalActive := len(activePeers)
-
-		// Step E: Truncate to match user limit criteria
-		if totalActive > limit {
-			activePeers = activePeers[:limit]
-		}
+		activePeers := peersCmd.Val()
+		totalActive := int(cardCmd.Val())
 
 		if activePeers == nil {
 			activePeers = []string{}
 		}
 
-		// Step F: Return dynamic connection payload back down the pipe
 		c.JSON(http.StatusOK, gin.H{
 			"basket_id":      basketID,
 			"peers":          activePeers,
