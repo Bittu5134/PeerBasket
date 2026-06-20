@@ -9,3 +9,32 @@ I often need a discovery server for my p2p projects but its a hassle to set it u
 Here is the rephrased version turned into a sharp, objective pith:
 
 PeerBasket eliminates the infrastructure overhead of spinning up dedicated PeerJS instances for every P2P project. Built for developers who just want to deploy peer-to-peer networks without configuration hassles, it streamlines swarm discovery and intentionally avoids authentication by design. This service is completely free and will always stay that way.
+
+
+
+
+---
+
+
+Devlog #1: Side Quest Project
+
+Hello! this is gonna be my little sidequest project.
+
+This is a sub-project of my ThumbScore and GeoShuffle Projects. In both of them I wanted to add p2p/multiplayer Features, but I was lacking Client Discovery features, thats why I firts thought of building a simple server for myself, But then I had the idea of Building a common server for everone!
+
+For this project I had to spend time learning and Reading through Docs on multiple topics, like..
+- Golang Net/Http
+- PeerJS server (which is what I didnt had the capacity to host myself)
+- Redis Caching
+- Linux Server hosting
+
+Ngl the last part took the most hours cause I havent every worked on a server myself, so its a new experince and lots of trial and errors.
+
+Now Back to how this works
+Its very Simple Honestly
+
+a user pings the `/basket/:id` route and registers their peerJS ID, the route returns a list of other peers in the same basket. also this ping acts as a heartbeat for peer connectiion, so if a peer hasnt pinged the server in the last 30 seconds, then its removed
+
+very simple logic ^-^
+
+now ill go and try to setup a server
