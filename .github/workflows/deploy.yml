@@ -1,0 +1,30 @@
+name: Remote SSH Execution
+
+on:
+  workflow_dispatch:
+    inputs:
+      ssh_user:
+        description: 'SSH Username'
+        required: true
+        type: string
+        default: 'ubuntu'
+      ssh_host:
+        description: 'SSH Host IP or Domain'
+        required: true
+        type: string
+
+jobs:
+  execute-commands:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run remote commands via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            whoami
+            pwd
+            hostname

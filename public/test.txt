@@ -1,0 +1,10 @@
+Folder PATH listing for volume Storage
+Volume serial number is 00000051 B2B6:0DF0
+E:.
+    index.html
+    logo.webp
+    losgo.webp
+    test.txt
+    
+No subfolders exist 
+
