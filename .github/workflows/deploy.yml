@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: 
 
 jobs:
   deploy:
@@ -35,8 +36,9 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "server"
+          source: "./server"
           target: "/opt/peerbasket"
+          overwrite: true
 
       - name: Restart Service
         uses: appleboy/ssh-action@v1.2.2
