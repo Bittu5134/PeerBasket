@@ -1,30 +1,50 @@
-name: Remote SSH Execution
+name: Deploy Server
 
 on:
-  workflow_dispatch:
-    inputs:
-      ssh_user:
-        description: 'SSH Username'
-        required: true
-        type: string
-        default: 'ubuntu'
-      ssh_host:
-        description: 'SSH Host IP or Domain'
-        required: true
-        type: string
+  push:
+    branches:
+      - main
 
 jobs:
-  execute-commands:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Run remote commands via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Download Dependencies
+        run: go mod download
+
+      - name: Build Linux Binary
+        env:
+          CGO_ENABLED: 0
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          go build -ldflags="-s -w" -o server .
+
+      - name: Copy Binary to Server
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
+          source: "server"
+          target: "/opt/peerbasket"
+
+      - name: Restart Service
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            whoami
-            pwd
-            hostname
+            chmod +x /opt/peerbasket/server
+            systemctl restart peerbasket
+            systemctl status peerbasket --no-pager
