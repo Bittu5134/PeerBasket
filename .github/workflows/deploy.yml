@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26"
-          cache: false 
+          cache: false
 
       - name: Download Dependencies
         run: go mod download
@@ -36,25 +36,15 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Upload Binary & Restart Service
+      - name: Upload Binary
         run: |
-          # 1. Stop the active process
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "systemctl stop peerbasket"
-          
-          # 2. Use simple SCP to avoid CPU spikes and network drops on the Nest container
-          # Added ServerAliveInterval to keep the proxy tunnel awake
-          scp -i ~/.ssh/id_ed25519 -o ServerAliveInterval=15 ./server ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server
-
-          # 3. Mark it executable and bring the service right back online
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            chmod +x /opt/peerbasket/server
-            systemctl start peerbasket
-            systemctl status peerbasket --no-pager
-          EOF
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            ./server \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server
 
       - name: Restart Service
         run: |
-          # Since SERVER_USER is now root, these systemctl commands will execute flawlessly
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             chmod +x /opt/peerbasket/server
             systemctl restart peerbasket
