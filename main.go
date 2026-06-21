@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"io/fs"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,7 +17,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-//go:embed public/*
+//go:embed static/*
 var embeddedFiles embed.FS
 
 var rdb *redis.Client
@@ -64,9 +65,14 @@ func main() {
 	router := gin.Default()
 	router.Use(CORSMiddleware())
 
-	templ := template.Must(template.New("").ParseFS(embeddedFiles, "public/*"))
+	templ := template.Must(template.New("").ParseFS(embeddedFiles, "static/*.html"))
 	router.SetHTMLTemplate(templ)
 
+	staticFiles, err := fs.Sub(embeddedFiles, "static")
+	if err != nil {
+		log.Fatal(err)
+	}
+	router.StaticFS("/static", http.FS(staticFiles))
 	// 1. HOME ROUTE (Serves documentation dashboard)
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
