@@ -37,15 +37,23 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Upload Binary
+      - name: Upload Binary and Public Assets
         run: |
-          # This gateway's exit-status reporting is unreliable (returns a
-          # bad code even on a fully successful transfer), so we don't let
-          # rsync's own exit code fail the step — we verify directly below.
+          # 1. Create the remote directory structure first just in case
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p /opt/peerbasket/public"
+
+          # 2. Upload the compiled Go binary file
           rsync -avz \
             -e "ssh -i ~/.ssh/id_ed25519" \
             ./server \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server || true
+
+          # 3. Upload the entire public assets folder (HTML, images, webp, svg)
+          # Note the trailing slash on public/ ensures it copies the folder contents
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            ./public/ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/public/ || true
 
       - name: Verify Upload
         run: |
@@ -57,11 +65,11 @@ jobs:
           echo "Remote: $REMOTE_HASH"
 
           if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-            echo "::error::Checksum mismatch — the upload actually failed, not just rsync's exit code."
+            echo "::error::Checksum mismatch — the binary upload failed."
             exit 1
           fi
 
-          echo "Checksums match — upload succeeded."
+          echo "Binary checksum matches."
 
       - name: Restart Service
         run: |
