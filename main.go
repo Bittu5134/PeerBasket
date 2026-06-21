@@ -5,8 +5,8 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
-	"log"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -73,18 +73,19 @@ func main() {
 		log.Fatal(err)
 	}
 	router.StaticFS("/static", http.FS(staticFiles))
-	// 1. HOME ROUTE (Serves documentation dashboard)
+
+	// HOME ROUTE
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
-	// 2. THE CONSOLIDATED DISCOVERY ROUTE (Register presence + Get Active Room State)
+	// API ROUTE
 	router.POST("/basket/:id", func(c *gin.Context) {
 		basketID := c.Param("id")
 		var req JoinRequest
-
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body, peer_id is required"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body. 'peer_id' is required and must be a valid string."})
+			c.Abort()
 			return
 		}
 
@@ -92,36 +93,35 @@ func main() {
 		now := time.Now().UnixMilli()
 		cutoff := now - heartbeatTimeout.Milliseconds()
 
-		// Extract optional '?limit=' parameter early
+		// Extract 'limit' parameter (optional)
 		limitStr := c.DefaultQuery("limit", "100")
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil || limit <= 0 {
 			limit = 100
 		}
 
-		// OPTIMIZATION: Use a Redis pipeline to batch commands into 1 network trip
+		// Using pipeline to improve performance
 		pipe := rdb.Pipeline()
 
-		// 1. Add/update the current peer. Score is the raw numeric timestamp.
+		//Add/update the current peer. Score is the raw numeric timestamp.
 		pipe.ZAdd(ctx, redisKey, redis.Z{
 			Score:  float64(now),
 			Member: req.PeerID,
 		})
 
-		// 2. Clear out all dead peers instantly inside Redis.
+		// Clear out all dead peers instantly inside Redis.
 		pipe.ZRemRangeByScore(ctx, redisKey, "-inf", strconv.FormatInt(cutoff, 10))
 
-		// 3. Query only the requested limit of active peers (sorted newest first).
-		// We use limit-1 because stop index is inclusive.
+		// returns active peers (sorted newest first).
 		peersCmd := pipe.ZRevRange(ctx, redisKey, 0, int64(limit-1))
 
-		// 4. Query total active count in the room efficiently.
+		// total active count
 		cardCmd := pipe.ZCard(ctx, redisKey)
 
-		// 5. Keep the basket key alive for an hour
+		// Keep the basket key alive for an hour
 		pipe.Expire(ctx, redisKey, 1*time.Hour)
 
-		// Execute all 5 commands in a single atomic round-trip
+		// bulk execute all commands
 		_, err = pipe.Exec(ctx)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update cluster state"})
@@ -137,10 +137,21 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{
 			"basket_id":      basketID,
-			"peers":          activePeers,
 			"total_peers":    totalActive,
 			"peers_returned": len(activePeers),
+			"peers":          activePeers,
 		})
+	})
+
+	// 404 Redirect to Home
+	router.NoRoute(func(c *gin.Context) {
+		if c.Request.Method == http.MethodGet {
+			c.Redirect(http.StatusTemporaryRedirect, "/")
+			c.Abort()
+			return
+		}
+		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid API Route"})
+
 	})
 
 	log.Printf("App running on port %s...", port)
