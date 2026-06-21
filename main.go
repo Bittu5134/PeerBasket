@@ -138,5 +138,5 @@ func main() {
 	})
 
 	log.Printf("App running on port %s...", port)
-	router.Run(":" + port)
+	router.Run("[::]:" + port)
 }

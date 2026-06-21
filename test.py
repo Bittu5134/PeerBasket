@@ -2,7 +2,7 @@ import asyncio
 import random
 import httpx
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://[2a01:4f9:3a:276e::893]:8001/"
 BASKET_ID = "consolidated-room"
 
 
