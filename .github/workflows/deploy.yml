@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "main.go"
+      - "static/**"
   workflow_dispatch:
 
 jobs:
