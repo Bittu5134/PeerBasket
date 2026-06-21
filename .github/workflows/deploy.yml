@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26"
-          cache: false 
+          cache: false
 
       - name: Download Dependencies
         run: go mod download
@@ -28,6 +28,7 @@ jobs:
           GOARCH: amd64
         run: |
           go build -ldflags="-s -w" -o server .
+          sha256sum server
 
       - name: Configure SSH
         run: |
@@ -36,18 +37,36 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Upload Binary & Restart Service
+      - name: Upload Binary
         run: |
-          # 1. Stop the active process
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "systemctl stop peerbasket"
-          
-          # 2. Use SCP to stream the file. It uses almost zero RAM compared to rsync,
-          # preventing the Nest container from killing the connection mid-transfer.
-          scp -i ~/.ssh/id_ed25519 -o ServerAliveInterval=15 ./server ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server
+          # This gateway's exit-status reporting is unreliable (returns a
+          # bad code even on a fully successful transfer), so we don't let
+          # rsync's own exit code fail the step — we verify directly below.
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            ./server \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server || true
 
-          # 3. Mark it executable and bring the service right back online
+      - name: Verify Upload
+        run: |
+          LOCAL_HASH=$(sha256sum server | cut -d' ' -f1)
+          REMOTE_HASH=$(ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "sha256sum /opt/peerbasket/server | cut -d' ' -f1")
+
+          echo "Local:  $LOCAL_HASH"
+          echo "Remote: $REMOTE_HASH"
+
+          if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+            echo "::error::Checksum mismatch — the upload actually failed, not just rsync's exit code."
+            exit 1
+          fi
+
+          echo "Checksums match — upload succeeded."
+
+      - name: Restart Service
+        run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             chmod +x /opt/peerbasket/server
-            systemctl start peerbasket
+            systemctl restart peerbasket
             systemctl status peerbasket --no-pager
           EOF
