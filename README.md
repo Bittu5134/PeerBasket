@@ -38,3 +38,37 @@ a user pings the `/basket/:id` route and registers their peerJS ID, the route re
 very simple logic ^-^
 
 now ill go and try to setup a server
+
+---
+
+Devlog #2: Server Setup and IPv6 - IPv4 Bridge
+
+Tiredddddd..........
+
+I spent the better part of today juggling between web dashboards and ssh terminal ⚰️
+
+Why is running a server so hard TwT
+
+ok so what i did today is
+- Create Github Worflow to compile code for linux
+- Use Rsync to upload the Binaries to server
+- Rgistered program as System MD
+- Setup Redis on server
+- Setup IPv6 - IPv4 Bridge
+- Setup Caddy as a reverse proxy
+- Moved my domain to Cloudflare name server
+- Setup caching
+- Setup rate limts
+- Setup security rules
+
+hours of work summarised in lines, It was proally cause im new to this that i had so much trouble
+
+before rsync I was trying to use scp to transfer files, but it wasnt able to write to the servr for some reasin, I tried multiple times but no luck
+
+I also fiddled with many diffferent cloudflare rules before coming up with a minimal setup with caddy and cloudflare combo
+
+I also had to switch my nameserver cause its needed by cloudflare.
+
+Also I'm using the Nest containers provided by Hackclub to host my server, since this server is ipv6 only I needed cloudflare's orange cloud to bridge that gap
+
+I also made sure to setup proper file structure on my server so that i can easily deploy more apps in future.

@@ -22,7 +22,7 @@ var embeddedFiles embed.FS
 var rdb *redis.Client
 var ctx = context.Background()
 
-const heartbeatTimeout = 60 * time.Second
+const heartbeatTimeout = 30 * time.Second
 
 type JoinRequest struct {
 	PeerID string `json:"peer_id" binding:"required"`
