@@ -15,7 +15,10 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          # Change this from "1.25" to "1.26" to align with your toolchain cache
+          go-version: "1.26"
+          # Optional: Disabling cache here will fix any remaining corrupted states
+          cache: false 
 
       - name: Download Dependencies
         run: go mod download
@@ -33,7 +36,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Upload Binary
@@ -45,9 +47,8 @@ jobs:
 
       - name: Restart Service
         run: |
-          ssh \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-              chmod +x /opt/peerbasket/server
-              systemctl restart peerbasket
-              systemctl status peerbasket --no-pager
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            chmod +x /opt/peerbasket/server
+            systemctl restart peerbasket
+            systemctl status peerbasket --no-pager
           EOF
