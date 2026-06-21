@@ -13,68 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.26"
-          cache: false
-
-      - name: Download Dependencies
-        run: go mod download
-
-      - name: Build Linux Binary
-        env:
-          CGO_ENABLED: 0
-          GOOS: linux
-          GOARCH: amd64
+      - name: Debug SSH
         run: |
-          go build -ldflags="-s -w" -o server .
-          sha256sum server
+          getent ahosts ${{ secrets.SERVER_HOST }}
 
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          ssh-keygen -lf ~/.ssh/id_ed25519
 
-      - name: Upload Binary and Public Assets
-        run: |
-          # 1. Create the remote directory structure first just in case
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p /opt/peerbasket/public"
-
-          # 2. Upload the compiled Go binary file
-          rsync -avz \
-            -e "ssh -i ~/.ssh/id_ed25519" \
-            ./server \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server || true
-
-          # 3. Upload the entire public assets folder (HTML, images, webp, svg)
-          # Note the trailing slash on public/ ensures it copies the folder contents
-          rsync -avz \
-            -e "ssh -i ~/.ssh/id_ed25519" \
-            ./public/ \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/public/ || true
-
-      - name: Verify Upload
-        run: |
-          LOCAL_HASH=$(sha256sum server | cut -d' ' -f1)
-          REMOTE_HASH=$(ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "sha256sum /opt/peerbasket/server | cut -d' ' -f1")
-
-          echo "Local:  $LOCAL_HASH"
-          echo "Remote: $REMOTE_HASH"
-
-          if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-            echo "::error::Checksum mismatch — the binary upload failed."
-            exit 1
-          fi
-
-          echo "Binary checksum matches."
-
-      - name: Restart Service
-        run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            chmod +x /opt/peerbasket/server
-            systemctl restart peerbasket
-            systemctl status peerbasket --no-pager
-          EOF
+          ssh -vvv \
+            -i ~/.ssh/id_ed25519 \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "whoami"
