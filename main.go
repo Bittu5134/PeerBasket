@@ -2,17 +2,18 @@ package main
 
 import (
 	"context"
-	"embed"
 	"fmt"
-	"html/template"
-	"io/fs"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
 
+	"embed"
 	"github.com/gin-gonic/gin"
+	"html/template"
+	"io/fs"
+	"net/http"
+
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
@@ -64,6 +65,7 @@ func main() {
 
 	router := gin.Default()
 	router.Use(CORSMiddleware())
+	_ = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
 	templ := template.Must(template.New("").ParseFS(embeddedFiles, "static/*.html"))
 	router.SetHTMLTemplate(templ)

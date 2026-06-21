@@ -442,8 +442,6 @@ setInterval(joinLobby, 10_000);</code></pre>
                 el.innerHTML = `&middot; <span class="font-semibold text-zinc-300">${count.toLocaleString()}</span>`;
             };
 
-            // Reuse the count for the rest of this tab session instead of
-            // hitting GitHub's (unauthenticated, rate-limited) API on every load.
             const cached = sessionStorage.getItem('pb-star-count');
             if (cached !== null) {
                 render(Number(cached));
