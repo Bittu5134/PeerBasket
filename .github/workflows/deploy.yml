@@ -18,7 +18,7 @@ jobs:
           printf "%s" "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-          
+
       - name: Debug SSH
         run: |
           getent ahosts ${{ secrets.SERVER_HOST }}
@@ -29,3 +29,8 @@ jobs:
             -i ~/.ssh/id_ed25519 \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
             "whoami"
+      - name: Inspect key
+        run: |
+          ls -l ~/.ssh
+          file ~/.ssh/id_ed25519
+          head -2 ~/.ssh/id_ed25519
