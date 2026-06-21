@@ -15,9 +15,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          # Change this from "1.25" to "1.26" to align with your toolchain cache
           go-version: "1.26"
-          # Optional: Disabling cache here will fix any remaining corrupted states
           cache: false 
 
       - name: Download Dependencies
@@ -38,28 +36,19 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Stop Service & Upload Binary
+      - name: Upload Binary
         run: |
-          # 1. Stop the 24/7 background process to release the file lock completely
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "systemctl stop peerbasket"
-          
-          # 2. Upload the new binary now that the file is completely unlocked
-          rsync -avz \
+          # The --delay-updates flag handles swapping out the binary seamlessly 
+          # while the systemd worker process runs in the background
+          rsync -avz --delay-updates \
             -e "ssh -i ~/.ssh/id_ed25519" \
             ./server \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server
 
-      - name: Start Service Back Up
-        run: |
-          # 3. Bring the background process back online with the new code
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            chmod +x /opt/peerbasket/server
-            systemctl start peerbasket
-            systemctl status peerbasket --no-pager
-          EOF
       - name: Restart Service
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          # Since SERVER_USER is now root, these systemctl commands will execute flawlessly
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             chmod +x /opt/peerbasket/server
             systemctl restart peerbasket
             systemctl status peerbasket --no-pager
