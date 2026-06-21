@@ -6,17 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PeerBasket | Home & Docs</title>
 
-    <meta name="description" content="PeerBasket is a free, open-source, zero-config room discovery API for PeerJS. POST a peer ID to a basket and get back every other active peer in the room — no signaling infrastructure required.">
+    <meta name="description"
+        content="PeerBasket is a free, open-source, zero-config room discovery API for PeerJS. POST a peer ID to a basket and get back every other active peer in the room — no signaling infrastructure required.">
     <link rel="canonical" href="https://peerbasket.bittu.dev/">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://peerbasket.bittu.dev/">
     <meta property="og:title" content="PeerBasket — zero-config room discovery for PeerJS">
-    <meta property="og:description" content="A hassle-free, lobby-based discovery API for PeerJS. Register a peer, get back everyone else in the room — no signaling infrastructure required.">
+    <meta property="og:description"
+        content="A hassle-free, lobby-based discovery API for PeerJS. Register a peer, get back everyone else in the room — no signaling infrastructure required.">
 
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="PeerBasket — zero-config room discovery for PeerJS">
-    <meta name="twitter:description" content="A hassle-free, lobby-based discovery API for PeerJS. Register a peer, get back everyone else in the room.">
+    <meta name="twitter:description"
+        content="A hassle-free, lobby-based discovery API for PeerJS. Register a peer, get back everyone else in the room.">
 
     <meta name="theme-color" content="#09090b">
     <meta name="color-scheme" content="dark">
@@ -62,12 +65,12 @@
                                 d="M12 2.5l2.9 6.02 6.6.6-5 4.5 1.5 6.5L12 16.9 6 20.12l1.5-6.5-5-4.5 6.6-.6L12 2.5Z" />
                         </svg>
                         <span>Star on GitHub</span>
-                        <span id="star-count" class="text-zinc-500 font-mono">·</span>
+                        <span id="star-count" class="text-zinc-500">·</span>
                     </a>
 
                     <div class="flex items-center gap-4 text-zinc-500">
-                        <a href="https://bittu.dev" target="_blank" rel="noopener noreferrer" aria-label="Personal Website"
-                            class="hover:text-zinc-100 transition-colors">
+                        <a href="https://bittu.dev" target="_blank" rel="noopener noreferrer"
+                            aria-label="Personal Website" class="hover:text-zinc-100 transition-colors">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                                 class="w-5 h-5">
                                 <circle cx="12" cy="12" r="9" />
@@ -89,6 +92,13 @@
                                     d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.13-.02-2.04-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .98-.31 3.2 1.18a11.1 11.1 0 0 1 5.83 0c2.22-1.49 3.2-1.18 3.2-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.26 5.69.41.36.77 1.06.77 2.15 0 1.55-.01 2.8-.01 3.18 0 .31.21.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
                             </svg>
                         </a>
+                        <a href="https://www.patreon.com/cw/LazyBittu" target="_blank" rel="noopener noreferrer"
+                            aria-label="Patreon" class="hover:text-zinc-100 transition-colors">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                <circle cx="15" cy="9" r="6.5" />
+                                <rect x="3.2" y="2.5" width="2.6" height="19" />
+                            </svg>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -101,7 +111,8 @@
                     PeerBasket is a public, zero-config room discovery API for PeerJS. A single API route registers
                     you to any arbitrary lobby and returns every other peer currently active in that same lobby —
                     no signaling infrastructure of your own required. A hosted instance lives at
-                    <code class="text-indigo-400 font-mono text-sm bg-zinc-950 px-1.5 py-0.5 rounded">peerbasket.bittu.dev</code>,
+                    <code
+                        class="text-indigo-400 font-mono text-sm bg-zinc-950 px-1.5 py-0.5 rounded">peerbasket.bittu.dev</code>,
                     or self-host it yourself from the
                     <a href="https://github.com/Bittu5134/PeerBasket" target="_blank" rel="noopener noreferrer"
                         class="text-indigo-400 underline hover:no-underline font-medium">GitHub repo</a>.
@@ -119,7 +130,10 @@
                     standing up dedicated infrastructure, it streamlines swarm discovery and intentionally avoids
                     authentication by design — see <a href="#security"
                         class="text-indigo-400 underline hover:no-underline font-medium">Security Considerations</a>
-                    below for what that trade-off actually means. This service is completely free and open source.
+                    below for what that trade-off actually means. This service is completely free and open source —
+                    if it's useful to you, consider <a href="https://www.patreon.com/cw/LazyBittu" target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-indigo-400 underline hover:no-underline font-medium">supporting it on Patreon</a>.
                 </p>
             </div>
         </section>
@@ -128,14 +142,16 @@
             <h2 class="text-xl font-bold mb-6 text-zinc-200">API Documentation</h2>
 
             <div class="border border-zinc-800 rounded-xl overflow-hidden">
-                <div class="flex items-center justify-between flex-wrap gap-3 bg-zinc-900/60 p-4 border-b border-zinc-800">
+                <div
+                    class="flex items-center justify-between flex-wrap gap-3 bg-zinc-900/60 p-4 border-b border-zinc-800">
                     <div class="flex items-center gap-3 flex-wrap">
                         <span
                             class="px-2 py-1 rounded text-xs font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">POST</span>
-                        <span class="font-mono text-sm font-semibold break-all text-zinc-200">peerbasket.bittu.dev/basket/:id<span
+                        <span
+                            class="font-mono text-sm font-semibold break-all text-zinc-200">peerbasket.bittu.dev/basket/:id<span
                                 class="text-indigo-400/80 font-normal">?limit=100</span></span>
                     </div>
-                    <span class="text-sm text-zinc-500 whitespace-nowrap font-mono">limit optional, default: 100</span>
+                    <span class="text-sm text-zinc-500 whitespace-nowrap">limit optional, default: 100</span>
                 </div>
 
                 <div class="p-6 text-sm text-zinc-400">
@@ -153,11 +169,14 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <p class="text-sm text-zinc-500 mb-2 font-semibold uppercase tracking-wide">Required JSON Body</p>
-                            <div class="relative group bg-zinc-950 p-4 rounded-xl font-mono text-sm h-28 flex items-center overflow-x-auto text-indigo-300">
+                            <p class="text-sm text-zinc-500 mb-2 font-semibold uppercase tracking-wide">Required JSON
+                                Body</p>
+                            <div
+                                class="relative group bg-zinc-950 p-4 rounded-xl font-mono text-sm h-28 flex items-center overflow-x-auto text-indigo-300">
                                 <button onclick="copyCode('json-req', this)"
                                     class="absolute top-2.5 right-2.5 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-900/80 px-2 py-1 rounded-md transition-colors">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-3.5 h-3.5">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                                        class="w-3.5 h-3.5">
                                         <rect x="9" y="9" width="11" height="11" rx="2" />
                                         <path d="M5 15V5a2 2 0 0 1 2-2h10" />
                                     </svg>
@@ -169,11 +188,14 @@
                             </div>
                         </div>
                         <div>
-                            <p class="text-sm text-zinc-500 mb-2 font-semibold uppercase tracking-wide">Response Payload</p>
-                            <div class="relative group bg-zinc-950 p-4 rounded-xl font-mono text-sm min-h-28 overflow-x-auto text-emerald-400">
+                            <p class="text-sm text-zinc-500 mb-2 font-semibold uppercase tracking-wide">Response Payload
+                            </p>
+                            <div
+                                class="relative group bg-zinc-950 p-4 rounded-xl font-mono text-sm min-h-28 overflow-x-auto text-emerald-400">
                                 <button onclick="copyCode('json-res', this)"
                                     class="absolute top-2.5 right-2.5 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-900/80 px-2 py-1 rounded-md transition-colors">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-3.5 h-3.5">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                                        class="w-3.5 h-3.5">
                                         <rect x="9" y="9" width="11" height="11" rx="2" />
                                         <path d="M5 15V5a2 2 0 0 1 2-2h10" />
                                     </svg>
@@ -197,7 +219,16 @@
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span><strong>Rate Limiting:</strong> The edge network enforces a hard rate limit of <strong>4 requests per 10 seconds per IP address</strong>. Exceeding this boundary will result in an HTTP 429 error. Ensure your application architecture leverages a polling interval of 10 seconds or slower.</span>
+                            <span><strong>Rate Limiting:</strong> The edge network enforces a hard rate limit of
+                                <strong>4 requests per 10 seconds per IP address</strong>. Exceeding this boundary will
+                                result in an HTTP 429 error. Ensure your application architecture leverages a polling
+                                interval of 10 seconds or slower.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-500 font-bold select-none">•</span>
+                            <span>The returned peer list includes your own peer ID alongside everyone else's —
+                                filter it out client-side before connecting to avoid trying to connect to
+                                yourself.</span>
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-indigo-500 font-bold select-none">•</span>
@@ -214,9 +245,12 @@
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span>The value of <code class="text-zinc-400 bg-zinc-950 px-1 py-0.5 rounded">peers_returned</code>
-                                may be less than <code class="text-zinc-400 bg-zinc-950 px-1 py-0.5 rounded">total_peers</code>
-                                if the requested query <code class="text-zinc-400 bg-zinc-950 px-1 py-0.5 rounded">limit</code>
+                            <span>The value of <code
+                                    class="text-zinc-400 bg-zinc-950 px-1 py-0.5 rounded">peers_returned</code>
+                                may be less than <code
+                                    class="text-zinc-400 bg-zinc-950 px-1 py-0.5 rounded">total_peers</code>
+                                if the requested query <code
+                                    class="text-zinc-400 bg-zinc-950 px-1 py-0.5 rounded">limit</code>
                                 value is smaller than the absolute lobby size.</span>
                         </li>
                     </ul>
@@ -229,22 +263,25 @@
             <div class="bg-zinc-900/40 rounded-xl p-6">
                 <p class="text-zinc-300 leading-relaxed mb-5">
                     Here's the API above put into practice: spin up a PeerJS peer, then register it into a lobby
-                    and poll for company. A 10-second polling interval is recommended to stay safely inside the network's rate limit bounds.
+                    and poll for company. A 10-second polling interval is recommended to stay safely inside the
+                    network's rate limit bounds.
                 </p>
 
                 <p class="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">1. Create a peer</p>
                 <div class="relative group bg-zinc-950 rounded-xl p-4 font-mono text-sm overflow-x-auto mb-6">
                     <button onclick="copyCode('qs-step1', this)"
                         class="absolute top-2.5 right-2.5 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-900/80 px-2 py-1 rounded-md transition-colors">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-3.5 h-3.5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                            class="w-3.5 h-3.5">
                             <rect x="9" y="9" width="11" height="11" rx="2" />
                             <path d="M5 15V5a2 2 0 0 1 2-2h10" />
                         </svg>
                         <span>Copy</span>
                     </button>
-<pre><code id="qs-step1" class="language-javascript">// &lt;script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"&gt;&lt;/script&gt;
+                    <pre><code id="qs-step1" class="language-javascript">// &lt;script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"&gt;&lt;/script&gt;
 
 const peer = new Peer(); // PeerJS assigns a random ID via its own broker server
+const connections = new Map(); // peerId -> open DataConnection
 
 peer.on('open', (id) => {
   console.log('My peer ID is:', id);
@@ -252,21 +289,24 @@ peer.on('open', (id) => {
 });
 
 peer.on('connection', (conn) => {
+  connections.set(conn.peer, conn);
   conn.on('data', (data) => console.log('Received:', data));
 });</code></pre>
                 </div>
 
-                <p class="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">2. Join a basket & connect to peers</p>
+                <p class="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">2. Join a basket & connect
+                    to peers</p>
                 <div class="relative group bg-zinc-950 rounded-xl p-4 font-mono text-sm overflow-x-auto">
                     <button onclick="copyCode('qs-step2', this)"
                         class="absolute top-2.5 right-2.5 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-900/80 px-2 py-1 rounded-md transition-colors">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-3.5 h-3.5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                            class="w-3.5 h-3.5">
                             <rect x="9" y="9" width="11" height="11" rx="2" />
                             <path d="M5 15V5a2 2 0 0 1 2-2h10" />
                         </svg>
                         <span>Copy</span>
                     </button>
-<pre><code id="qs-step2" class="language-javascript">async function joinLobby() {
+                    <pre><code id="qs-step2" class="language-javascript">async function joinLobby() {
   const res = await fetch('https://peerbasket.bittu.dev/basket/room-101', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -281,21 +321,32 @@ peer.on('connection', (conn) => {
 
   const { peers } = await res.json();
 
-  peers.forEach((id) => {
-    const conn = peer.connect(id);
+  peers
+    // Skip yourself (the list includes your own ID) and anyone
+    // you're already connected to, so reconnects don't pile up.
+    .filter((id) => id !== peer.id && !connections.has(id))
+    .forEach((id) => {
+      const conn = peer.connect(id);
+      connections.set(id, conn);
 
-    // A peer can still show up as "active" for up to the heartbeat
-    // window after it's actually gone — don't assume it's reachable
-    // until the connection actually opens.
-    const giveUp = setTimeout(() => conn.close(), 5000);
+      // A peer can still show up as "active" for up to the heartbeat
+      // window after it's actually gone — don't assume it's reachable
+      // until the connection actually opens.
+      const giveUp = setTimeout(() => {
+        connections.delete(id);
+        conn.close();
+      }, 5000);
 
-    conn.on('open', () => {
-      clearTimeout(giveUp);
-      conn.send('hello!');
+      conn.on('open', () => {
+        clearTimeout(giveUp);
+        conn.send('hello!');
+      });
+
+      conn.on('error', () => {
+        clearTimeout(giveUp);
+        connections.delete(id);
+      });
     });
-
-    conn.on('error', () => clearTimeout(giveUp));
-  });
 }
 
 // Re-register periodically to stay "active" and catch newcomers
@@ -339,22 +390,29 @@ setInterval(joinLobby, 10_000);</code></pre>
                                 d="M3 12h18M12 3c2.5 2.5 3.75 5.5 3.75 9s-1.25 6.5-3.75 9c-2.5-2.5-3.75-5.5-3.75-9S9.5 5.5 12 3Z" />
                         </svg>
                     </a>
-                    <a href="https://discord.gg/CZdNvKaNNr" target="_blank" rel="noopener noreferrer" aria-label="Discord server"
-                        class="hover:text-zinc-200 transition-colors">
+                    <a href="https://discord.gg/CZdNvKaNNr" target="_blank" rel="noopener noreferrer"
+                        aria-label="Discord server" class="hover:text-zinc-200 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5">
                             <path fill="currentColor"
                                 d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.1.1 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.1 16.1 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02M8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12m6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12" />
                         </svg>
                     </a>
-                    <a href="https://github.com/Bittu5134/" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile"
-                        class="hover:text-zinc-200 transition-colors">
+                    <a href="https://github.com/Bittu5134/" target="_blank" rel="noopener noreferrer"
+                        aria-label="GitHub profile" class="hover:text-zinc-200 transition-colors">
                         <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                             <path
                                 d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.13-.02-2.04-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .98-.31 3.2 1.18a11.1 11.1 0 0 1 5.83 0c2.22-1.49 3.2-1.18 3.2-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.26 5.69.41.36.77 1.06.77 2.15 0 1.55-.01 2.8-.01 3.18 0 .31.21.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
                         </svg>
                     </a>
+                    <a href="https://www.patreon.com/cw/LazyBittu" target="_blank" rel="noopener noreferrer"
+                        aria-label="Patreon" class="hover:text-zinc-200 transition-colors">
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <circle cx="15" cy="9" r="6.5" />
+                            <rect x="3.2" y="2.5" width="2.6" height="19" />
+                        </svg>
+                    </a>
                 </div>
-                <p class="text-zinc-600 text-sm font-mono mt-2">PeerBasket — open source, no strings attached.</p>
+                <p class="text-zinc-600 text-sm mt-2">PeerBasket — open source, no strings attached.</p>
             </div>
         </footer>
     </div>

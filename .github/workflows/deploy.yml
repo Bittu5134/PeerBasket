@@ -38,13 +38,25 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Upload Binary
+      - name: Stop Service & Upload Binary
         run: |
-          rsync -avz --delay-updates \
+          # 1. Stop the 24/7 background process to release the file lock completely
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "sudo systemctl stop peerbasket"
+          
+          # 2. Upload the new binary now that the file is completely unlocked
+          rsync -avz \
             -e "ssh -i ~/.ssh/id_ed25519" \
             ./server \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server
 
+      - name: Start Service Back Up
+        run: |
+          # 3. Bring the background process back online with the new code
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            chmod +x /opt/peerbasket/server
+            sudo systemctl start peerbasket
+            sudo systemctl status peerbasket --no-pager
+          EOF
       - name: Restart Service
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
