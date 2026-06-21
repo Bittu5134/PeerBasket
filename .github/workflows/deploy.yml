@@ -38,14 +38,12 @@ jobs:
 
       - name: Upload Binary & Restart Service
         run: |
-          # 1. Stop the active process to release the kernel lock entirely
+          # 1. Stop the active process
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "systemctl stop peerbasket"
           
-          # 2. Upload the new binary file cleanly now that the lock is gone
-          rsync -avz \
-            -e "ssh -i ~/.ssh/id_ed25519" \
-            ./server \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server
+          # 2. Use simple SCP to avoid CPU spikes and network drops on the Nest container
+          # Added ServerAliveInterval to keep the proxy tunnel awake
+          scp -i ~/.ssh/id_ed25519 -o ServerAliveInterval=15 ./server ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server
 
           # 3. Mark it executable and bring the service right back online
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
