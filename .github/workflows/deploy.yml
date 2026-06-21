@@ -57,7 +57,7 @@ jobs:
           echo "Remote: $REMOTE_HASH"
 
           if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-            echo "::error::Checksum mismatch — the upload actually failed, not just rsync's exit code."
+            echo "::error::Checksum mismatch — the upload failed"
             exit 1
           fi
 
