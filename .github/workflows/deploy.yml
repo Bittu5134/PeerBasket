@@ -36,7 +36,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-        - name: Upload Binary & Restart Service
+      - name: Upload Binary & Restart Service
         run: |
           # 1. Stop the active process to release the kernel lock entirely
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "systemctl stop peerbasket"
