@@ -12,25 +12,61 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: false
+
+      - name: Download Dependencies
+        run: go mod download
+
+      - name: Build Linux Binary
+        env:
+          CGO_ENABLED: 0
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          go build -ldflags="-s -w" -o server .
+          sha256sum server
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
-          printf "%s" "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Debug SSH
+      - name: Upload Binary
         run: |
-          getent ahosts ${{ secrets.SERVER_HOST }}
+          # This gateway's exit-status reporting is unreliable (returns a
+          # bad code even on a fully successful transfer), so we don't let
+          # rsync's own exit code fail the step — we verify directly below.
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            ./server \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server || true
 
-          ssh-keygen -lf ~/.ssh/id_ed25519
-
-          ssh -vvv \
-            -i ~/.ssh/id_ed25519 \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "whoami"
-      - name: Inspect key
+      - name: Verify Upload
         run: |
-          ls -l ~/.ssh
-          file ~/.ssh/id_ed25519
-          head -2 ~/.ssh/id_ed25519
+          LOCAL_HASH=$(sha256sum server | cut -d' ' -f1)
+          REMOTE_HASH=$(ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "sha256sum /opt/peerbasket/server | cut -d' ' -f1")
+
+          echo "Local:  $LOCAL_HASH"
+          echo "Remote: $REMOTE_HASH"
+
+          if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+            echo "::error::Checksum mismatch — the upload actually failed, not just rsync's exit code."
+            exit 1
+          fi
+
+          echo "Checksums match — upload succeeded."
+
+      - name: Restart Service
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            chmod +x /opt/peerbasket/server
+            systemctl restart peerbasket
+            systemctl status peerbasket --no-pager
+          EOF
