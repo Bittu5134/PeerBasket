@@ -12,7 +12,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf "%s" "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          
       - name: Debug SSH
         run: |
           getent ahosts ${{ secrets.SERVER_HOST }}
