@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<!--
+  basic-connect.html
+
+  The smallest complete example of using PeerBasket with PeerJS:
+    1. Create a PeerJS peer.
+    2. Register it under a basket on PeerBasket.
+    3. Get back the list of other peers in that basket.
+    4. Connect directly to each of them with PeerJS.
+    5. Send and receive simple text messages over the resulting connection.
+
+  Open this file in two different browser tabs (or two different devices)
+  to see two peers find and message each other.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PeerBasket: basic connect</title>
+</head>
+<body>
+  <h1>PeerBasket: basic connect</h1>
+  <p>My peer ID: <code id="my-id">connecting...</code></p>
+  <p>Connected peers: <span id="peer-count">0</span></p>
+
+  <input id="message-input" type="text" placeholder="Type a message and press Enter" />
+  <ul id="log"></ul>
+
+  <!-- PeerJS client library, loaded from a CDN. No build step required. -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    // ---- Configuration -------------------------------------------------
+
+    // The basket name both peers must agree on ahead of time.
+    // Anyone who knows this string can join this basket, so for anything
+    // beyond a demo, use a long random value instead of a plain word.
+    // See the PeerBasket docs' "Security Considerations" section.
+    const BASKET_ID = "peerbasket-demo-basic-connect";
+
+    // How often (in milliseconds) to re-register with PeerBasket.
+    // PeerBasket drops a peer from a basket if it hasn't been heard from
+    // in 30 seconds, and rate-limits to 20 requests/minute, so anything
+    // between 10s and 25s is a safe interval.
+    const POLL_INTERVAL_MS = 20_000;
+
+    // ---- State -----------------------------------------------------------
+
+    // Map of peerId -> open PeerJS DataConnection.
+    // Keeping this in one place makes it easy to avoid duplicate connections.
+    const connections = new Map();
+
+    const logEl = document.getElementById("log");
+    const myIdEl = document.getElementById("my-id");
+    const peerCountEl = document.getElementById("peer-count");
+
+    function log(text) {
+      const item = document.createElement("li");
+      item.textContent = text;
+      logEl.appendChild(item);
+    }
+
+    // ---- Step 1: create a PeerJS peer --------------------------------------
+
+    // Calling new Peer() with no arguments asks PeerJS's own cloud broker
+    // to hand us a random ID. That broker only handles the initial WebRTC
+    // handshake; it has nothing to do with PeerBasket or basket discovery.
+    const peer = new Peer();
+
+    peer.on("open", (myId) => {
+      myIdEl.textContent = myId;
+      log(`My peer ID is ${myId}`);
+
+      // Register immediately, then keep re-registering on an interval so
+      // PeerBasket keeps treating us as active and we keep discovering
+      // any new peers that join the basket later.
+      joinBasket();
+      setInterval(joinBasket, POLL_INTERVAL_MS);
+    });
+
+    // Fired whenever ANOTHER peer initiates a connection to us first.
+    // Without this handler we'd only ever connect outward, never inward,
+    // and whichever peer registered second would never receive anything.
+    peer.on("connection", (conn) => {
+      setupConnection(conn);
+    });
+
+    peer.on("error", (err) => {
+      log(`PeerJS error: ${err.type}`);
+    });
+
+    // ---- Step 2 & 3: register with PeerBasket and read back the basket ----
+
+    async function joinBasket() {
+      let response;
+      try {
+        response = await fetch(
+          `https://peerbasket.bittu.dev/basket/${BASKET_ID}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ peer_id: peer.id }),
+          }
+        );
+      } catch (networkErr) {
+        // The fetch itself failed (offline, DNS, CORS, etc).
+        // Don't crash the polling loop over one bad request; just skip
+        // this round and try again next interval.
+        log("Could not reach PeerBasket, will retry");
+        return;
+      }
+
+      if (!response.ok) {
+        // A 429 here means we're polling faster than the 20 requests/minute
+        // limit. Anything else is unexpected and worth logging.
+        log(`PeerBasket responded with HTTP ${response.status}`);
+        return;
+      }
+
+      const { peers } = await response.json();
+
+      // ---- Step 4: connect to every peer we don't already know about ----
+
+      peers
+        .filter((id) => id !== peer.id) // PeerBasket includes our own ID too
+        .filter((id) => !connections.has(id)) // skip peers we're already connected to
+        .forEach((id) => {
+          const conn = peer.connect(id);
+          setupConnection(conn);
+        });
+    }
+
+    // ---- Step 5: wire up a connection (incoming or outgoing) ---------------
+
+    function setupConnection(conn) {
+      connections.set(conn.peer, conn);
+      peerCountEl.textContent = connections.size;
+
+      conn.on("open", () => {
+        log(`Connected to ${conn.peer}`);
+      });
+
+      conn.on("data", (data) => {
+        log(`${conn.peer}: ${data}`);
+      });
+
+      conn.on("close", () => {
+        connections.delete(conn.peer);
+        peerCountEl.textContent = connections.size;
+        log(`${conn.peer} disconnected`);
+      });
+
+      conn.on("error", () => {
+        connections.delete(conn.peer);
+        peerCountEl.textContent = connections.size;
+      });
+    }
+
+    // ---- UI: broadcast whatever you type to every connected peer -----------
+
+    document.getElementById("message-input").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || !e.target.value.trim()) return;
+
+      const text = e.target.value.trim();
+      connections.forEach((conn) => conn.send(text));
+      log(`me: ${text}`);
+      e.target.value = "";
+    });
+  </script>
+</body>
+</html>
