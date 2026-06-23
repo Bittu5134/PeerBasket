@@ -54,9 +54,9 @@ jobs:
         run: |
           LOCAL_HASH=$(sha256sum server | cut -d' ' -f1)
           
-          # Add '|| echo "FAILED"' so a 255 exit code doesn't crash the runner
+          # Use '|| true' to absorb the 255 exit code without adding text to the variable
           REMOTE_HASH=$(ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "sha256sum /opt/peerbasket/server | cut -d' ' -f1" || echo "FAILED")
+            "sha256sum /opt/peerbasket/server | cut -d' ' -f1" || true)
 
           echo "Local:  $LOCAL_HASH"
           echo "Remote: $REMOTE_HASH"
