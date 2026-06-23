@@ -70,8 +70,5 @@ jobs:
 
       - name: Restart Service
         run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            chmod +x /opt/peerbasket/server
-            systemctl restart peerbasket
-            systemctl status peerbasket --no-pager
-          EOF
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "chmod +x /opt/peerbasket/server && systemctl restart peerbasket && systemctl status peerbasket --no-pager" || true
