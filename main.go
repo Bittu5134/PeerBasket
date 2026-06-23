@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"embed"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -31,7 +31,6 @@ type JoinRequest struct {
 	PeerID string `json:"peer_id" binding:"required"`
 }
 
-
 func main() {
 	_ = godotenv.Load()
 
@@ -51,7 +50,7 @@ func main() {
 	})
 
 	router := gin.Default()
-	
+
 	router.Use(cors.Default())
 	_ = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
