@@ -57,7 +57,10 @@ export default function VideoCall({ basketId }) {
 
       peer.on("open", (id) => {
         pollOnce(peer);
-        pollTimerRef.current = setInterval(() => pollOnce(peer), POLL_INTERVAL_MS);
+        pollTimerRef.current = setInterval(
+          () => pollOnce(peer),
+          POLL_INTERVAL_MS,
+        );
       });
 
       // Someone else found us in the basket and called us first.
@@ -80,11 +83,14 @@ export default function VideoCall({ basketId }) {
 
       let response;
       try {
-        response = await fetch(`https://peerbasket.bittu.dev/basket/${basketId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ peer_id: peer.id }),
-        });
+        response = await fetch(
+          `https://peerbasket.bittu.dev/basket/${basketId}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ peer_id: peer.id }),
+          },
+        );
       } catch {
         return;
       }
@@ -103,7 +109,8 @@ export default function VideoCall({ basketId }) {
       if (!cancelled) setStatus(`connecting to ${call.peer}`);
 
       call.on("stream", (remoteStream) => {
-        if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
+        if (remoteVideoRef.current)
+          remoteVideoRef.current.srcObject = remoteStream;
         if (!cancelled) setStatus(`in call with ${call.peer}`);
       });
 
