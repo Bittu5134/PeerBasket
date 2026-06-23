@@ -10,6 +10,7 @@ import (
 
 	"embed"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -28,20 +29,6 @@ const heartbeatTimeout = 30 * time.Second
 
 type JoinRequest struct {
 	PeerID string `json:"peer_id" binding:"required"`
-}
-
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-		c.Next()
-	}
 }
 
 
@@ -64,7 +51,8 @@ func main() {
 	})
 
 	router := gin.Default()
-	router.Use(CORSMiddleware())
+	
+	router.Use(cors.Default())
 	_ = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
 	templ := template.Must(template.New("").ParseFS(embeddedFiles, "static/*.html"))
