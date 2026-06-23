@@ -53,14 +53,16 @@ jobs:
       - name: Verify Upload
         run: |
           LOCAL_HASH=$(sha256sum server | cut -d' ' -f1)
+          
+          # Add '|| echo "FAILED"' so a 255 exit code doesn't crash the runner
           REMOTE_HASH=$(ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "sha256sum /opt/peerbasket/server | cut -d' ' -f1")
+            "sha256sum /opt/peerbasket/server | cut -d' ' -f1" || echo "FAILED")
 
           echo "Local:  $LOCAL_HASH"
           echo "Remote: $REMOTE_HASH"
 
           if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-            echo "::error::Checksum mismatch — the upload failed"
+            echo "::error::Checksum mismatch or SSH connection dropped — the upload failed"
             exit 1
           fi
 

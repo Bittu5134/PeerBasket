@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--
+  group-chat-mesh.html
+
+  A many-peer group chat. Every peer in the basket connects directly to
+  every other peer in the basket (a "mesh" topology) and broadcasts each
+  message to all of them.
+
+  This is the natural extension of basic-connect.html to more than two
+  peers. The PeerBasket-specific logic is identical; the only difference
+  is that we now expect (and handle) more than one connection at once.
+
+  Good for: small group chats, collaborative tools, multiplayer lobbies
+  with a handful of players. A full mesh sends N-1 copies of every
+  message per peer, so it doesn't scale gracefully much past a dozen or
+  two participants. For larger groups, you'd want a relay/host peer
+  instead of a full mesh, which is outside the scope of this example.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PeerBasket: group chat mesh</title>
+</head>
+<body>
+  <h1>PeerBasket: group chat mesh</h1>
+  <p>My peer ID: <code id="my-id">connecting...</code></p>
+  <p>Connected to <span id="peer-count">0</span> other peer(s)</p>
+
+  <input id="message-input" type="text" placeholder="Type a message and press Enter" />
+  <ul id="log"></ul>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    const BASKET_ID = "peerbasket-demo-group-chat";
+    const POLL_INTERVAL_MS = 10_000;
+
+    // peerId -> open DataConnection. A full mesh just means this map can
+    // grow past one entry; everything else in this file matches
+    // basic-connect.html.
+    const connections = new Map();
+
+    const logEl = document.getElementById("log");
+    const myIdEl = document.getElementById("my-id");
+    const peerCountEl = document.getElementById("peer-count");
+
+    function log(text) {
+      const item = document.createElement("li");
+      item.textContent = text;
+      logEl.appendChild(item);
+    }
+
+    function updatePeerCount() {
+      peerCountEl.textContent = connections.size;
+    }
+
+    const peer = new Peer();
+
+    peer.on("open", (myId) => {
+      myIdEl.textContent = myId;
+      log(`Joined as ${myId}`);
+      joinBasket();
+      setInterval(joinBasket, POLL_INTERVAL_MS);
+    });
+
+    peer.on("connection", setupConnection);
+    peer.on("error", (err) => log(`PeerJS error: ${err.type}`));
+
+    async function joinBasket() {
+      let response;
+      try {
+        response = await fetch(
+          `https://peerbasket.bittu.dev/basket/${BASKET_ID}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ peer_id: peer.id }),
+          }
+        );
+      } catch {
+        log("Could not reach PeerBasket, will retry");
+        return;
+      }
+
+      if (!response.ok) {
+        log(`PeerBasket responded with HTTP ${response.status}`);
+        return;
+      }
+
+      const { peers } = await response.json();
+
+      // Connect to anyone new in the basket. Because every peer does this
+      // on every poll, the mesh self-heals: if you missed someone on your
+      // first poll (they joined a second after you), you'll pick them up
+      // on the next one.
+      peers
+        .filter((id) => id !== peer.id)
+        .filter((id) => !connections.has(id))
+        .forEach((id) => setupConnection(peer.connect(id)));
+    }
+
+    function setupConnection(conn) {
+      connections.set(conn.peer, conn);
+      updatePeerCount();
+
+      conn.on("open", () => log(`${conn.peer} joined`));
+
+      conn.on("data", (data) => log(`${conn.peer}: ${data}`));
+
+      conn.on("close", () => {
+        connections.delete(conn.peer);
+        updatePeerCount();
+        log(`${conn.peer} left`);
+      });
+
+      conn.on("error", () => {
+        connections.delete(conn.peer);
+        updatePeerCount();
+      });
+    }
+
+    // Broadcast: send to every open connection in the mesh.
+    document.getElementById("message-input").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || !e.target.value.trim()) return;
+
+      const text = e.target.value.trim();
+      connections.forEach((conn) => {
+        if (conn.open) conn.send(text);
+      });
+      log(`me: ${text}`);
+      e.target.value = "";
+    });
+  </script>
+</body>
+</html>
