@@ -1,60 +1,116 @@
-# PeerBasket examples
+# PeerBasket Examples
 
-Working examples for every common PeerBasket use case, across four environments. Every example uses real calls to the hosted instance at `peerbasket.bittu.dev`, so you can run them as they are, without setting up your own server.
+Working examples across different environments and use cases. Every example connects to the hosted instance at `peerbasket.bittu.dev`, so you can run them immediately without setting up your own server.
 
-All examples use a basket name like `peerbasket-demo-basic-connect`. That name is public, so anyone running these exact files will land in the same basket as you. For real projects, replace it with your own long, random, unguessable string. See the [Security Considerations](../README.md#security-considerations) section of the main README for why that matters.
+## Quick start
 
-## By use case
+Open any `index.html` file in a modern browser, or run a Node.js example with `npm install && node main.js`. Open the same example in two tabs or terminals to see two peers discover each other.
 
-| Use case | Where to find it |
-| --- | --- |
-| Basic two-peer connect | [`browser-vanilla/basic-connect.html`](./browser-vanilla/basic-connect.html), [`node/basic-connect.js`](./node/basic-connect.js), [`browser-demo/demo.html`](./browser-demo/demo.html) |
-| Group chat / mesh (many peers, broadcast to all) | [`browser-vanilla/group-chat-mesh.html`](./browser-vanilla/group-chat-mesh.html), [`node/group-chat-mesh.js`](./node/group-chat-mesh.js) |
-| 1:1 random matchmaking | [`react/Matchmaking.jsx`](./react/Matchmaking.jsx), [`browser-demo/demo.html`](./browser-demo/demo.html) |
-| File transfer | [`browser-vanilla/file-transfer.html`](./browser-vanilla/file-transfer.html) |
-| Video/voice call | [`browser-vanilla/video-call.html`](./browser-vanilla/video-call.html), [`react/VideoCall.jsx`](./react/VideoCall.jsx) |
-| Reconnect and error handling reference | [`node/reconnect-and-errors.js`](./node/reconnect-and-errors.js) |
+## Examples by use case
+
+### Basic peer discovery
+
+**Start here if you're new.** A peer registers with a basket and connects to one or every other peer in it.
+
+- **[`basic-demo-browser`](./basic-demo-browser/)**: vanilla HTML/JS. Open `index.html` in two browser tabs. Type and send messages back and forth.
+- **[`basic-demo-terminal`](./basic-demo-terminal/)**: Node.js CLI. Run `node main.js` in two terminals. Type and send messages back and forth.
+
+### Group chat / mesh
+
+Multiple peers in the same basket, all connected directly to each other. Every peer broadcasts to all peers.
+
+- **[`basic-groupchat`](./basic-groupchat/)**: vanilla HTML/JS. Open `index.html` in three or more browser tabs to see it in action. Great for small multiplayer lobbies or collaborative tools.
+
+### Random 1:1 matchmaking
+
+A user joins a basket and connects to exactly one other user, then stops polling. Good for matchmaking or pairing for a task.
+
+- **[`matchmaking-react`](./matchmaking-react/)**: React component. `<Matchmaking basketId="my-app-matches-v1" />`. Works with any React app.
+
+### File transfer
+
+Send a file directly from one browser to another. Uses binary data channels and handles the full send/receive loop.
+
+- **[`file-transfer`](./file-transfer/)**: vanilla HTML/JS. Open `index.html` in two browser tabs, pick a file in one, and download it in the other.
+
+### Video and voice calls
+
+WebRTC media streams (audio/video) flowing directly between browsers. PeerBasket only finds the peer; PeerJS handles the media.
+
+- **[`videocall`](./videocall/)**: vanilla HTML/JS. Open `index.html` in two browser tabs. Allows camera/microphone access in both, and a 1:1 video call connects automatically.
+- **[`videocall-react`](./videocall-react/)**: React component. `<VideoCall basketId="my-app-calls-v1" />`. Handles cleanup (stops camera, closes streams) on unmount.
+
+**Note:** Video call examples require `https://` or `localhost`. They will not work if served over plain `http` on a non-localhost address, or opened as a `file://` URL. This is a browser security restriction, not a PeerJS or PeerBasket limitation.
+
+### Error handling and resilience
+
+A reference for all the failure modes you'll actually hit in production: PeerBasket unreachable, rate limited, stale peer IDs, the PeerJS broker connection dropping.
+
+- **[`error-cases`](./error-cases/)**: Node.js reference module with `robustJoinBasket()` helper and detailed comments on why each check exists. Run `node main.js` to see it connect to the demo basket. Read the code to understand what can go wrong.
 
 ## By environment
 
-### `browser-vanilla/`
+### Browser (vanilla HTML/JS)
 
-Plain HTML and JavaScript. No build step, no `npm install`. PeerJS is loaded from a CDN with a single `<script>` tag. Open any file directly in a browser, or serve the folder with any static file server.
+No build step, no dependencies. PeerJS is loaded from a CDN with a single `<script>` tag. Open any `index.html` directly in a browser.
 
-- `basic-connect.html`: the smallest complete example, two peers finding each other and exchanging text messages.
-- `group-chat-mesh.html`: the same idea extended to any number of peers in one basket.
-- `file-transfer.html`: sends a file directly between two browsers.
-- `video-call.html`: a 1:1 video/voice call using `peer.call()`.
+- `basic-demo-browser/`
+- `basic-groupchat/`
+- `file-transfer/`
+- `videocall/`
 
-### `browser-demo/`
+### Node.js
 
-- `demo.html`: a single clickable page. Pick "Open lobby" or "Find a match" with a button, no code reading required to try it out. Open it in two tabs to see it work.
-
-### `node/`
-
-Command-line peers, using PeerJS's native (beta) Node.js support.
+Command-line peers using PeerJS's native Node.js support (currently in beta).
 
 ```bash
-cd node
+cd basic-demo-terminal
 npm install
-node basic-connect.js          # run in two terminals
-node group-chat-mesh.js        # run in three or more terminals
-node reconnect-and-errors.js   # a single resilient peer, see comments inline
+node main.js
 ```
-
-PeerJS's Node.js, Bun, and Deno support is currently in beta. If you hit WebRTC-related errors specific to your platform, the browser examples are the more battle-tested option.
-
-### `react/`
-
-Components, meant to be dropped into an existing React app.
 
 ```bash
-npm install peerjs
+cd error-cases
+npm install
+node main.js
 ```
 
-- `Matchmaking.jsx`: pairs the current user with exactly one other user, then stops polling PeerBasket once matched.
-- `VideoCall.jsx`: a 1:1 video/voice call component with proper cleanup on unmount (stops the camera, ends the call, destroys the peer).
+**Note:** PeerJS's Node.js, Bun, and Deno support is beta. If you hit WebRTC errors on your platform, the browser examples are more battle-tested.
 
-## A note on the reconnect/error-handling example
+### React
 
-Every example above includes basic error handling inline (a failed `fetch`, an HTTP error from PeerBasket, a connection that never opens). `node/reconnect-and-errors.js` is the one place where that logic is the entire point of the file rather than a side detail. Read it if you want to understand exactly what can go wrong and why each check exists, even if you end up using a browser example for your actual project.
+Components ready to drop into a React app. Requires `npm install peerjs`.
+
+```jsx
+import Matchmaking from "./matchmaking-react/main.jsx";
+import VideoCall from "./videocall-react/main.jsx";
+
+export default function App() {
+  return (
+    <>
+      <Matchmaking basketId="my-app-matches-v1" />
+      <VideoCall basketId="my-app-calls-v1" />
+    </>
+  );
+}
+```
+
+## Important notes
+
+### Basket IDs are public
+
+Every example uses a demo basket name like `peerbasket-demo-browser`. Anyone running these exact files lands in the same basket as you.
+
+**For production:** replace all basket names with your own long, random, unguessable string. Treat a basket ID like an unlisted URL, not a password. See the main README's [Security Considerations](../README.md#security-considerations) section.
+
+### Peers are discoverable, not verified
+
+PeerBasket has no authentication. Anyone who knows your basket ID can join it and see who else is in it. If you need to restrict membership, verify identity at the application layer: a shared secret, an OAuth token, a handshake once the PeerJS connection opens, etc.
+
+### Active ≠ reachable
+
+A peer is "active" if it checked in with PeerBasket within the last 30 seconds. But it might have crashed 5 seconds ago, lost its network connection, or closed its tab. The only real liveness check is whether a PeerJS connection actually opens. Handle the case where it never does.
+
+### Rate limits
+
+PeerBasket allows 20 requests per minute. Polling faster than every 10 seconds will hit the limit. Every example respects this; if you modify one, keep the interval >= 10 seconds.
