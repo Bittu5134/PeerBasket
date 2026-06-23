@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+  video-call.html
+
+  A 1:1 video/voice call. PeerBasket is only used to find the other
+  peer's ID; the actual audio/video travels directly between browsers
+  over WebRTC via peer.call(), which is PeerJS's media-streaming API
+  (separate from peer.connect(), which is for data only).
+
+  Requires a camera/microphone and a browser that supports
+  navigator.mediaDevices.getUserMedia (every modern browser does, but
+  it requires either https:// or localhost; it will not work if this
+  file is opened directly as a file:// URL or served over plain http
+  on a non-localhost address).
+
+  Open this file in two tabs, allow camera/mic access in both, and the
+  call connects automatically once both have joined the basket.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PeerBasket: video call</title>
+  <style>
+    video { width: 320px; background: #222; }
+  </style>
+</head>
+<body>
+  <h1>PeerBasket: video call</h1>
+  <p>My peer ID: <code id="my-id">connecting...</code></p>
+  <p>Status: <span id="status">waiting for camera access...</span></p>
+
+  <video id="local-video" autoplay muted playsinline></video>
+  <video id="remote-video" autoplay playsinline></video>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    const BASKET_ID = "peerbasket-demo-video-call";
+    const POLL_INTERVAL_MS = 10_000;
+
+    const statusEl = document.getElementById("status");
+    const myIdEl = document.getElementById("my-id");
+    const localVideo = document.getElementById("local-video");
+    const remoteVideo = document.getElementById("remote-video");
+
+    let localStream = null;
+    let activeCall = null; // this example only handles one call at a time
+
+    async function main() {
+      // Ask for camera and microphone access BEFORE creating the peer,
+      // so the stream is ready the moment a call comes in or goes out.
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+      } catch (err) {
+        statusEl.textContent = "camera/microphone access was denied";
+        return;
+      }
+
+      localVideo.srcObject = localStream;
+      statusEl.textContent = "waiting for a peer...";
+
+      const peer = new Peer();
+
+      peer.on("open", (myId) => {
+        myIdEl.textContent = myId;
+        joinBasket(peer);
+        setInterval(() => joinBasket(peer), POLL_INTERVAL_MS);
+      });
+
+      // Fired when ANOTHER peer calls us. We must answer with our own
+      // stream, or the caller never receives any video/audio back.
+      peer.on("call", (incomingCall) => {
+        if (activeCall) {
+          incomingCall.close(); // already on a call, decline this one
+          return;
+        }
+        incomingCall.answer(localStream);
+        setupCall(incomingCall);
+      });
+
+      peer.on("error", (err) => {
+        statusEl.textContent = `PeerJS error: ${err.type}`;
+      });
+    }
+
+    async function joinBasket(peer) {
+      if (activeCall) return; // already paired, no need to keep polling
+
+      let response;
+      try {
+        response = await fetch(
+          `https://peerbasket.bittu.dev/basket/${BASKET_ID}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ peer_id: peer.id }),
+          }
+        );
+      } catch {
+        return;
+      }
+      if (!response.ok) return;
+
+      const { peers } = await response.json();
+      const other = peers.find((id) => id !== peer.id);
+
+      // Only the peer that finds someone else in the basket initiates
+      // the call. The other side answers via the "call" handler above.
+      // This avoids both peers calling each other simultaneously.
+      if (other && !activeCall) {
+        setupCall(peer.call(other, localStream));
+      }
+    }
+
+    function setupCall(call) {
+      activeCall = call;
+      statusEl.textContent = `connecting to ${call.peer}...`;
+
+      call.on("stream", (remoteStream) => {
+        remoteVideo.srcObject = remoteStream;
+        statusEl.textContent = `in call with ${call.peer}`;
+      });
+
+      call.on("close", () => {
+        activeCall = null;
+        remoteVideo.srcObject = null;
+        statusEl.textContent = "waiting for a peer...";
+      });
+
+      call.on("error", () => {
+        activeCall = null;
+        remoteVideo.srcObject = null;
+        statusEl.textContent = "call error, waiting for a peer...";
+      });
+    }
+
+    main();
+  </script>
+</body>
+</html>

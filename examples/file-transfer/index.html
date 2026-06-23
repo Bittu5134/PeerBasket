@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!--
+  file-transfer.html
+
+  Sends a file directly from one browser to another over a PeerJS data
+  connection, using PeerBasket only to find the other peer.
+
+  How it differs from basic-groupchat.html:
+    - The PeerConnection is created with { serialization: "binary" } so
+      that PeerJS can send the raw bytes of a File/Blob without us having
+      to base64-encode anything ourselves.
+    - We send a small JSON "meta" message first (file name, size, type),
+      then the file's binary data as a second message, so the receiving
+      side knows what it's about to get and can show a progress bar.
+
+  Open this file in two tabs. Pick a file in either tab; whichever tab
+  has an open connection to the other peer will send it.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PeerBasket: file transfer</title>
+</head>
+<body>
+  <h1>PeerBasket: file transfer</h1>
+  <p>My peer ID: <code id="my-id">connecting...</code></p>
+  <p>Status: <span id="status">waiting for a peer...</span></p>
+
+  <input id="file-input" type="file" disabled />
+  <ul id="log"></ul>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    const BASKET_ID = "peerbasket-demo-file-transfer";
+    const POLL_INTERVAL_MS = 10_000;
+
+    let activeConnection = null; // this example only handles one peer at a time
+
+    const logEl = document.getElementById("log");
+    const myIdEl = document.getElementById("my-id");
+    const statusEl = document.getElementById("status");
+    const fileInput = document.getElementById("file-input");
+
+    function log(text) {
+      const item = document.createElement("li");
+      item.textContent = text;
+      logEl.appendChild(item);
+    }
+
+    const peer = new Peer();
+
+    peer.on("open", (myId) => {
+      myIdEl.textContent = myId;
+      joinBasket();
+      setInterval(joinBasket, POLL_INTERVAL_MS);
+    });
+
+    peer.on("connection", (conn) => setupConnection(conn));
+    peer.on("error", (err) => log(`PeerJS error: ${err.type}`));
+
+    async function joinBasket() {
+      let response;
+      try {
+        response = await fetch(
+          `https://peerbasket.bittu.dev/basket/${BASKET_ID}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ peer_id: peer.id }),
+          }
+        );
+      } catch {
+        return; // offline or unreachable, try again next interval
+      }
+      if (!response.ok || activeConnection) return; // already paired, nothing to do
+
+      const { peers } = await response.json();
+      const other = peers.find((id) => id !== peer.id);
+
+      if (other) {
+        // Binary serialization lets us send a Blob/File directly instead
+        // of converting it to a string first.
+        const conn = peer.connect(other, { serialization: "binary" });
+        setupConnection(conn);
+      }
+    }
+
+    function setupConnection(conn) {
+      activeConnection = conn;
+
+      conn.on("open", () => {
+        statusEl.textContent = `connected to ${conn.peer}`;
+        fileInput.disabled = false;
+        log(`Connected to ${conn.peer}`);
+      });
+
+      // We expect exactly two messages per file: a small JSON "meta"
+      // object, then the raw file bytes. inboundMeta holds the first
+      // one while we wait for the second.
+      let inboundMeta = null;
+
+      conn.on("data", (data) => {
+        if (!inboundMeta) {
+          // First message: { name, size, type }
+          inboundMeta = data;
+          log(`Receiving "${inboundMeta.name}" (${inboundMeta.size} bytes)...`);
+          return;
+        }
+
+        // Second message: the file's binary content as an ArrayBuffer.
+        const blob = new Blob([data], { type: inboundMeta.type });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = inboundMeta.name;
+        link.textContent = `Download ${inboundMeta.name}`;
+        logEl.appendChild(document.createElement("li")).appendChild(link);
+
+        inboundMeta = null; // ready for the next file
+      });
+
+      conn.on("close", () => {
+        activeConnection = null;
+        fileInput.disabled = true;
+        statusEl.textContent = "waiting for a peer...";
+        log(`${conn.peer} disconnected`);
+      });
+    }
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file || !activeConnection || !activeConnection.open) return;
+
+      // Step 1: tell the other side what's coming.
+      activeConnection.send({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      // Step 2: send the actual bytes. PeerJS accepts a File/Blob
+      // directly when serialization is "binary".
+      activeConnection.send(await file.arrayBuffer());
+
+      log(`Sent "${file.name}"`);
+      fileInput.value = "";
+    });
+  </script>
+</body>
+</html>
