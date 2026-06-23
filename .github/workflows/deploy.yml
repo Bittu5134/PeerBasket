@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "main.go"
-      - "static/**"
+      - "static/*"
   workflow_dispatch:
 
 jobs:
