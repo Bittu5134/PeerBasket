@@ -143,6 +143,11 @@ func main() {
 
 	})
 
+	// PING!
+	router.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "A-OK!", "message": "Mostly harmless..."})
+	})
+
 	log.Printf("App running on port %s...", port)
 	router.Run("[::]:" + port)
 }
