@@ -1,4 +1,4 @@
-// VideoCall.jsx
+// VideoCall for React
 //
 // A React component for a 1:1 video/voice call, using PeerBasket to
 // find the other peer and PeerJS's media-call API (peer.call) to

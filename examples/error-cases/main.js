@@ -1,4 +1,4 @@
-// reconnect-and-errors.js
+// errors and reconnection
 //
 // This file is not a demo app. It's a reference for the failure modes
 // you'll actually hit when using PeerBasket and PeerJS together, and a
@@ -8,7 +8,7 @@
 // explaining WHY each branch exists.
 //
 // Run it directly to see it in action:
-//   node reconnect-and-errors.js
+//   node main.js
 
 import { Peer } from "peerjs";
 

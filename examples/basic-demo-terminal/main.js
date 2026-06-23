@@ -1,4 +1,4 @@
-// basic-connect.js
+// basic terminal demo
 //
 // A command-line peer using PeerBasket and PeerJS's native Node.js
 // support. Run this script in two separate terminals; each instance
@@ -13,7 +13,7 @@
 //   npm install peerjs
 //
 // Run (in two separate terminals):
-//   node basic-connect.js
+//   node main.js
 
 import { Peer } from "peerjs";
 import readline from "node:readline";

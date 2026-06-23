@@ -1,4 +1,4 @@
-// Matchmaking.jsx
+// Matchmaking in React
 //
 // A React component that pairs the current browser with exactly one
 // other browser using PeerBasket, then opens a PeerJS data connection
