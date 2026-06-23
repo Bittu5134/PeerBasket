@@ -1,171 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <title>PeerBasket: basic connect</title>
+  <meta charset="UTF-8" />
+  <title>PeerBasket: basic connect</title>
 </head>
-
 <body>
-    <h1>PeerBasket: basic connect</h1>
-    <p>My peer ID: <code id="my-id">connecting...</code></p>
-    <p>Connected peers: <span id="peer-count">0</span></p>
+  <h1>PeerBasket: basic connect</h1>
+  <p>My peer ID: <code id="my-id">connecting...</code></p>
+  <p>Connected peers: <span id="peer-count">0</span></p>
 
-    <input id="message-input" type="text" placeholder="Type a message and press Enter" />
-    <ul id="log"></ul>
+  <input id="message-input" type="text" placeholder="Type a message and press Enter" />
+  <ul id="log"></ul>
 
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
-    <script>
-        // ---- Configuration -------------------------------------------------
+  <script>
+    // ---- Configuration -------------------------------------------------
 
-        // The basket name both peers must agree on ahead of time.
-        // Anyone who knows this string can join this basket, so for anything
-        // beyond a demo, use a long random value instead of a plain word.
-        // See the PeerBasket docs' "Security Considerations" section.
-        const BASKET_ID = "peerbasket-demo-basic-connect";
+    // The basket name both peers must agree on ahead of time.
+    // Anyone who knows this string can join this basket, so for anything
+    // beyond a demo, use a long random value instead of a plain word.
+    // See the PeerBasket docs' "Security Considerations" section.
+    const BASKET_ID = "peerbasket-demo-basic-connect";
 
-        // How often (in milliseconds) to re-register with PeerBasket.
-        // PeerBasket drops a peer from a basket if it hasn't been heard from
-        // in 30 seconds, and rate-limits to 20 requests/minute, so anything
-        // between 10s and 25s is a safe interval.
-        const POLL_INTERVAL_MS = 20_000;
+    // How often (in milliseconds) to re-register with PeerBasket.
+    // PeerBasket drops a peer from a basket if it hasn't been heard from
+    // in 30 seconds, and rate-limits to 20 requests/minute, so anything
+    // between 10s and 25s is a safe interval.
+    const POLL_INTERVAL_MS = 20_000;
 
-        // ---- State -----------------------------------------------------------
+    // ---- State -----------------------------------------------------------
 
-        // Map of peerId -> open PeerJS DataConnection.
-        // Keeping this in one place makes it easy to avoid duplicate connections.
-        const connections = new Map();
+    // Map of peerId -> open PeerJS DataConnection.
+    // Keeping this in one place makes it easy to avoid duplicate connections.
+    const connections = new Map();
 
-        // Rate-limiting cooldown flag
-        let isCoolingDown = false;
+    // Rate-limiting cooldown flag
+    let isCoolingDown = false;
 
-        const logEl = document.getElementById("log");
-        const myIdEl = document.getElementById("my-id");
-        const peerCountEl = document.getElementById("peer-count");
+    const logEl = document.getElementById("log");
+    const myIdEl = document.getElementById("my-id");
+    const peerCountEl = document.getElementById("peer-count");
 
-        function log(text) {
-            const item = document.createElement("li");
-            item.textContent = text;
-            logEl.appendChild(item);
+    function log(text) {
+      const item = document.createElement("li");
+      item.textContent = text;
+      logEl.appendChild(item);
+    }
+
+    // ---- Step 1: create a PeerJS peer --------------------------------------
+
+    // Calling new Peer() with no arguments asks PeerJS's own cloud broker
+    // to hand us a random ID. That broker only handles the initial WebRTC
+    // handshake; it has nothing to do with PeerBasket or basket discovery.
+    const peer = new Peer();
+
+    peer.on("open", (myId) => {
+      myIdEl.textContent = myId;
+      log(`My peer ID is ${myId}`);
+
+      // Register immediately, then keep re-registering on an interval so
+      // PeerBasket keeps treating us as active and we keep discovering
+      // any new peers that join the basket later.
+      joinBasket();
+      setInterval(joinBasket, POLL_INTERVAL_MS);
+    });
+
+    // Fired whenever ANOTHER peer initiates a connection to us first.
+    // Without this handler we'd only ever connect outward, never inward,
+    // and whichever peer registered second would never receive anything.
+    peer.on("connection", (conn) => {
+      setupConnection(conn);
+    });
+
+    // ---- Step 2 & 3: register with PeerBasket and read back the basket ----
+
+    async function joinBasket() {
+      // If we hit a rate limit recently, skip polling until the cooldown expires
+      if (isCoolingDown) {
+        return;
+      }
+
+      let response;
+      try {
+        response = await fetch(
+          `https://peerbasket.bittu.dev/basket/${BASKET_ID}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ peer_id: peer.id }),
+          }
+        );
+      } catch (networkErr) {
+        // The fetch itself failed (offline, DNS, CORS, etc).
+        // Don't crash the polling loop over one bad request; just skip
+        // this round and try again next interval.
+        log("Could not reach PeerBasket, will retry");
+        return;
+      }
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          log("Rate limit hit! Pausing API requests for 10 seconds...");
+          isCoolingDown = true;
+          
+          setTimeout(() => {
+            isCoolingDown = false;
+            log("Rate limit cooldown finished. Resuming API requests.");
+          }, 10_000); // 10 seconds cooldown
+        } else {
+          log(`PeerBasket responded with HTTP ${response.status}`);
         }
+        return;
+      }
 
-        // ---- Step 1: create a PeerJS peer --------------------------------------
+      const { peers } = await response.json();
 
-        // Calling new Peer() with no arguments asks PeerJS's own cloud broker
-        // to hand us a random ID. That broker only handles the initial WebRTC
-        // handshake; it has nothing to do with PeerBasket or basket discovery.
-        const peer = new Peer();
+      // ---- Step 4: connect to every peer we don't already know about ----
 
-        peer.on("open", (myId) => {
-            myIdEl.textContent = myId;
-            log(`My peer ID is ${myId}`);
-
-            // Register immediately, then keep re-registering on an interval so
-            // PeerBasket keeps treating us as active and we keep discovering
-            // any new peers that join the basket later.
-            joinBasket();
-            setInterval(joinBasket, POLL_INTERVAL_MS);
+      peers
+        .filter((id) => id !== peer.id) // PeerBasket includes our own ID too
+        .filter((id) => !connections.has(id)) // skip peers we're already connected to
+        .forEach((id) => {
+          const conn = peer.connect(id);
+          setupConnection(conn);
         });
+    }
 
-        // Fired whenever ANOTHER peer initiates a connection to us first.
-        // Without this handler we'd only ever connect outward, never inward,
-        // and whichever peer registered second would never receive anything.
-        peer.on("connection", (conn) => {
-            setupConnection(conn);
-        });
+    // ---- Step 5: wire up a connection (incoming or outgoing) ---------------
 
-        // ---- Step 2 & 3: register with PeerBasket and read back the basket ----
+    function setupConnection(conn) {
+      connections.set(conn.peer, conn);
+      peerCountEl.textContent = connections.size;
 
-        async function joinBasket() {
-            // If we hit a rate limit recently, skip polling until the cooldown expires
-            if (isCoolingDown) {
-                return;
-            }
+      conn.on("open", () => {
+        log(`Connected to ${conn.peer}`);
+      });
 
-            let response;
-            try {
-                response = await fetch(
-                    `https://peerbasket.bittu.dev/basket/${BASKET_ID}`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ peer_id: peer.id }),
-                    }
-                );
-            } catch (networkErr) {
-                // The fetch itself failed (offline, DNS, CORS, etc).
-                // Don't crash the polling loop over one bad request; just skip
-                // this round and try again next interval.
-                log("Could not reach PeerBasket, will retry");
-                return;
-            }
+      conn.on("data", (data) => {
+        log(`${conn.peer}: ${data}`);
+      });
 
-            if (!response.ok) {
-                if (response.status === 429) {
-                    log("Rate limit hit! Pausing API requests for 10 seconds...");
-                    isCoolingDown = true;
+      conn.on("close", () => {
+        connections.delete(conn.peer);
+        peerCountEl.textContent = connections.size;
+        log(`${conn.peer} disconnected`);
+      });
 
-                    setTimeout(() => {
-                        isCoolingDown = false;
-                        log("Rate limit cooldown finished. Resuming API requests.");
-                    }, 10_000); // 10 seconds cooldown
-                } else {
-                    log(`PeerBasket responded with HTTP ${response.status}`);
-                }
-                return;
-            }
+      conn.on("error", () => {
+        connections.delete(conn.peer);
+        peerCountEl.textContent = connections.size;
+      });
+    }
 
-            const { peers } = await response.json();
+    // ---- UI: broadcast whatever you type to every connected peer -----------
 
-            // ---- Step 4: connect to every peer we don't already know about ----
+    document.getElementById("message-input").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || !e.target.value.trim()) return;
 
-            peers
-                .filter((id) => id !== peer.id) // PeerBasket includes our own ID too
-                .filter((id) => !connections.has(id)) // skip peers we're already connected to
-                .forEach((id) => {
-                    const conn = peer.connect(id);
-                    setupConnection(conn);
-                });
-        }
-
-        // ---- Step 5: wire up a connection (incoming or outgoing) ---------------
-
-        function setupConnection(conn) {
-            connections.set(conn.peer, conn);
-            peerCountEl.textContent = connections.size;
-
-            conn.on("open", () => {
-                log(`Connected to ${conn.peer}`);
-            });
-
-            conn.on("data", (data) => {
-                log(`${conn.peer}: ${data}`);
-            });
-
-            conn.on("close", () => {
-                connections.delete(conn.peer);
-                peerCountEl.textContent = connections.size;
-                log(`${conn.peer} disconnected`);
-            });
-
-            conn.on("error", () => {
-                connections.delete(conn.peer);
-                peerCountEl.textContent = connections.size;
-            });
-        }
-
-        // ---- UI: broadcast whatever you type to every connected peer -----------
-
-        document.getElementById("message-input").addEventListener("keydown", (e) => {
-            if (e.key !== "Enter" || !e.target.value.trim()) return;
-
-            const text = e.target.value.trim();
-            connections.forEach((conn) => conn.send(text));
-            log(`me: ${text}`);
-            e.target.value = "";
-        });
-    </script>
+      const text = e.target.value.trim();
+      connections.forEach((conn) => conn.send(text));
+      log(`me: ${text}`);
+      e.target.value = "";
+    });
+  </script>
 </body>
-
 </html>
