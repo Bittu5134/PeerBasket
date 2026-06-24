@@ -1,153 +1,191 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
-	"strconv"
-	"time"
+        "context"
+        "fmt"
+        "log"
+        "os"
+        "os/signal"
+        "strconv"
+        "strings"
+        "syscall"
+        "time"
 
-	"embed"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"html/template"
-	"io/fs"
-	"net/http"
+        "embed"
+        "github.com/gin-contrib/cors"
+        "github.com/gin-gonic/gin"
+        "net/http"
 
-	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
+        "github.com/joho/godotenv"
+        "github.com/redis/go-redis/v9"
+        "log/slog"
 )
 
-//go:embed static/*
+//go:embed public/*
 var embeddedFiles embed.FS
-
-var rdb *redis.Client
-var ctx = context.Background()
 
 const heartbeatTimeout = 30 * time.Second
 
 type JoinRequest struct {
-	PeerID string `json:"peer_id" binding:"required"`
+        PeerID string `json:"peer_id" binding:"required"`
+}
+
+type Server struct {
+        rdb *redis.Client
+}
+
+func NewServer(rdb *redis.Client) *Server {
+        return &Server{rdb: rdb}
+}
+
+func serveRawFile(c *gin.Context, filepath string, contentType string) {    
+        data, err := embeddedFiles.ReadFile("public/" + filepath)
+        if err != nil {
+                c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+                return
+        }
+        c.Data(http.StatusOK, contentType, data)
 }
 
 func main() {
-	_ = godotenv.Load()
+        _ = godotenv.Load()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+        port := os.Getenv("PORT")
+        if port == "" {
+                port = "8080"
+        }
 
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
-	}
+        redisAddr := os.Getenv("REDIS_ADDR")
+        if redisAddr == "" {
+                redisAddr = "localhost:6379"
+        }
 
-	rdb = redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-		DB:   0,
-	})
+        rdb := redis.NewClient(&redis.Options{
+                Addr: redisAddr,
+                DB:   0,
+        })
 
-	router := gin.Default()
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+        if _, err := rdb.Ping(ctx).Result(); err != nil {
+                log.Fatalf("Redis connection failed: %v", err)
+        }
 
-	router.Use(cors.Default())
-	_ = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+        corsConfig := cors.Config{
+                AllowAllOrigins: true,
+                AllowMethods:    []string{http.MethodGet, http.MethodPost, http.MethodOptions},
+                AllowHeaders:    []string{"Origin", "Content-Type", "Accept", "Authorization"},
+        }
 
-	templ := template.Must(template.New("").ParseFS(embeddedFiles, "static/*.html"))
-	router.SetHTMLTemplate(templ)
+        router := gin.Default()
+        router.Use(cors.New(corsConfig))
+        _ = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
-	staticFiles, err := fs.Sub(embeddedFiles, "static")
-	if err != nil {
-		log.Fatal(err)
-	}
-	router.StaticFS("/static", http.FS(staticFiles))
+        server := NewServer(rdb)
 
-	// HOME ROUTE
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
-	})
+        // STATIC FILE ROUTES
+        router.GET("/", func(c *gin.Context) { serveRawFile(c, "index.html", "text/html; charset=utf-8") })
+        router.GET("/index.html", func(c *gin.Context) { serveRawFile(c, "index.html", "text/html; charset=utf-8") })
+        router.GET("/logo.svg", func(c *gin.Context) { serveRawFile(c, "logo.svg", "image/svg+xml") })
+        router.GET("/logo.webp", func(c *gin.Context) { serveRawFile(c, "logo.webp", "image/webp") })
+        router.GET("/banner.webp", func(c *gin.Context) { serveRawFile(c, "banner.webp", "image/webp") })
 
-	// API ROUTE
-	router.POST("/basket/:id", func(c *gin.Context) {
-		basketID := c.Param("id")
-		var req JoinRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body. 'peer_id' is required and must be a valid string."})
-			c.Abort()
-			return
-		}
+        // API ROUTES
+        router.POST("/basket/:id", server.handleBasket)
+        router.GET("/ping", server.handlePing)
 
-		redisKey := fmt.Sprintf("basket:%s", basketID)
-		now := time.Now().UnixMilli()
-		cutoff := now - heartbeatTimeout.Milliseconds()
+        // FALLBACK
+        router.NoRoute(server.handleNoRoute)
 
-		// Extract 'limit' parameter (optional)
-		limitStr := c.DefaultQuery("limit", "100")
-		limit, err := strconv.Atoi(limitStr)
-		if err != nil || limit <= 0 {
-			limit = 100
-		}
+        srv := &http.Server{Addr: ":" + port, Handler: router}
 
-		// Using pipeline to improve performance
-		pipe := rdb.Pipeline()
+        go func() {
+                slog.Info("starting server", "port", port)
+                if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+                        slog.Error("server failed", "error", err)
+                        os.Exit(1)
+                }
+        }()
 
-		//Add/update the current peer. Score is the raw numeric timestamp.
-		pipe.ZAdd(ctx, redisKey, redis.Z{
-			Score:  float64(now),
-			Member: req.PeerID,
-		})
+        // GRACEFUL SHUTDOWN
+        quit := make(chan os.Signal, 1)
+        signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+        <-quit
+        slog.Info("shutting down server")
 
-		// Clear out all dead peers instantly inside Redis.
-		pipe.ZRemRangeByScore(ctx, redisKey, "-inf", strconv.FormatInt(cutoff, 10))
+        shutCtx, shutCancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer shutCancel()
+        if err := srv.Shutdown(shutCtx); err != nil {
+                slog.Error("server forced to shutdown", "error", err)       
+        }
+}
 
-		// returns active peers (sorted newest first).
-		peersCmd := pipe.ZRevRange(ctx, redisKey, 0, int64(limit-1))
+// SERVER ROUTES
 
-		// total active count
-		cardCmd := pipe.ZCard(ctx, redisKey)
+func (s *Server) handleBasket(c *gin.Context) {
+        basketID := c.Param("id")
+        var req JoinRequest
+        if err := c.ShouldBindJSON(&req); err != nil {
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body. 'peer_id' is required and must be a valid string."})
+                return
+        }
 
-		// Keep the basket key alive for an hour
-		pipe.Expire(ctx, redisKey, 1*time.Hour)
+        redisKey := fmt.Sprintf("basket:%s", basketID)
+        now := time.Now().UnixMilli()
+        cutoff := now - heartbeatTimeout.Milliseconds()
 
-		// bulk execute all commands
-		_, err = pipe.Exec(ctx)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update cluster state"})
-			return
-		}
+        limitStr := c.DefaultQuery("limit", "100")
+        limit, _ := strconv.Atoi(limitStr)
+        if limit > 1000 {
+                limit = 1000
+        }
+        if limit <= 0 {
+                limit = 100
+        }
 
-		activePeers := peersCmd.Val()
-		totalActive := int(cardCmd.Val())
+        ctx := c.Request.Context()
+        pipe := s.rdb.Pipeline()
 
-		if activePeers == nil {
-			activePeers = []string{}
-		}
+        pipe.ZAdd(ctx, redisKey, redis.Z{
+                Score:  float64(now),
+                Member: req.PeerID,
+        })
+        pipe.ZRemRangeByScore(ctx, redisKey, "-inf", strconv.FormatInt(cutoff, 10))
+        peersCmd := pipe.ZRevRange(ctx, redisKey, 0, int64(limit-1))        
+        cardCmd := pipe.ZCard(ctx, redisKey)
+        pipe.Expire(ctx, redisKey, time.Hour)
 
-		c.JSON(http.StatusOK, gin.H{
-			"basket_id":      basketID,
-			"total_peers":    totalActive,
-			"peers_returned": len(activePeers),
-			"peers":          activePeers,
-		})
-	})
+        _, err := pipe.Exec(ctx)
+        if err != nil {
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update cluster state"})
+                return
+        }
 
-	// 404 Redirect to Home
-	router.NoRoute(func(c *gin.Context) {
-		if c.Request.Method == http.MethodGet {
-			c.Redirect(http.StatusTemporaryRedirect, "/")
-			c.Abort()
-			return
-		}
-		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid API Route"})
+        activePeers := peersCmd.Val()
+        totalActive := int(cardCmd.Val())
 
-	})
+        if activePeers == nil {
+                activePeers = []string{}
+        }
 
-	// PING!
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "A-OK!", "message": "Mostly harmless..."})
-	})
+        c.JSON(http.StatusOK, gin.H{
+                "basket_id":      basketID,
+                "total_peers":    totalActive,
+                "peers_returned": len(activePeers),
+                "peers":          activePeers,
+        })
+}
 
-	log.Printf("App running on port %s...", port)
-	router.Run("[::]:" + port)
+func (s *Server) handleNoRoute(c *gin.Context) {
+        if c.Request.Method == http.MethodGet && !strings.HasPrefix(c.Request.URL.Path, "/basket") {
+                serveRawFile(c, "404.html", "text/html; charset=utf-8")     
+        } else if strings.HasPrefix(c.Request.URL.Path, "/basket") {        
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body. 'peer_id' is required and must be a valid string. Also '/basket/:id' must be a POST request"})
+        } else {
+                c.JSON(http.StatusNotFound, gin.H{"error": "Route Not Found"})
+        }
+}
+
+func (s *Server) handlePing(c *gin.Context) {
+        c.JSON(http.StatusOK, gin.H{"status": "A-OK!", "message": "Mostly harmless..."})
 }
