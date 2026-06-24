@@ -1,105 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PeerBasket | Docs</title>
 
     <meta name="description"
-        content="PeerBasket is a free, open-source, zero-config peer discovery API for PeerJS. You send a peer ID to a basket, and you get back every other peer that is currently in it. No signaling infrastructure is required.">
-    <link rel="canonical" href="https://peerbasket.bittu.dev/">
+        content="PeerBasket is a free, open-source, zero-config peer discovery API for PeerJS. You send a peer ID to a basket, and you get back every other peer that is currently in it. No signaling infrastructure is required." />
+    <link rel="canonical" href="https://peerbasket.bittu.dev/" />
 
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://peerbasket.bittu.dev/">
-    <meta property="og:title" content="PeerBasket: zero-config peer discovery for PeerJS">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://peerbasket.bittu.dev/" />
+    <meta property="og:title" content="PeerBasket: zero-config peer discovery for PeerJS" />
     <meta property="og:description"
-        content="A free, zero-config discovery API for PeerJS. Register a peer ID under a basket, and get back everyone else who is currently in it. No signaling infrastructure of your own is required.">
-    <meta property="og:image" content="https://peerbasket.bittu.dev/banner.webp">
-    <meta property="og:image:type" content="image/webp">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+        content="A free, zero-config discovery API for PeerJS. Register a peer ID under a basket, and get back everyone else who is currently in it. No signaling infrastructure of your own is required." />
+    <meta property="og:image" content="https://peerbasket.bittu.dev/banner.webp" />
+    <meta property="og:image:type" content="image/webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="PeerBasket: zero-config peer discovery for PeerJS">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PeerBasket: zero-config peer discovery for PeerJS" />
     <meta name="twitter:description"
-        content="A free, zero-config discovery API for PeerJS. Register a peer ID under a basket, and get back everyone else who is currently in it.">
-    <meta name="twitter:image" content="https://peerbasket.bittu.dev/banner.webp">
+        content="A free, zero-config discovery API for PeerJS. Register a peer ID under a basket, and get back everyone else who is currently in it." />
+    <meta name="twitter:image" content="https://peerbasket.bittu.dev/banner.webp" />
 
-    <meta name="theme-color" content="#09090b">
-    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#09090b" />
+    <meta name="color-scheme" content="dark" />
 
-    <link rel="icon" type="image/svg+xml" href="./logo.svg">
+    <link rel="icon" type="image/svg+xml" href="./logo.svg" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@400..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         body {
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        .font-mono, code, pre {
+            font-family: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
         }
 
         .hljs {
             background: transparent !important;
             padding: 0 !important;
         }
+
+        pre code {
+            font-size: 0.825rem !important;
+            line-height: 1.6 !important;
+        }
     </style>
 </head>
 
-<body class="bg-zinc-950 text-zinc-50 min-h-screen selection:bg-indigo-500 selection:text-white antialiased">
-
-    <div class="max-w-4xl mx-auto px-6 py-12">
-        <header class="border-b border-zinc-800 pb-8 mb-12">
-            <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+<body class="bg-[#09090b] text-[#f4f4f5] min-h-screen selection:bg-indigo-600 selection:text-white antialiased">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 w-full overflow-x-hidden">
+        <header class="border-b-4 border-zinc-800 pb-10 mb-12">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-8">
                 <div class="flex-1">
                     <h1
-                        class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+                        class="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent select-none uppercase break-words">
                         PeerBasket
                     </h1>
-                    <p class="mt-3 text-zinc-400 text-lg max-w-2xl">
+                    <p class="mt-4 text-zinc-300 text-lg sm:text-xl font-medium max-w-3xl leading-relaxed">
                         A hassle-free, lobby-based PeerJS discovery server.
                     </p>
                 </div>
 
-                <div class="flex items-center gap-5 shrink-0">
+                <div class="flex flex-wrap items-center gap-4 lg:shrink-0">
                     <a href="https://github.com/Bittu5134/PeerBasket" target="_blank" rel="noopener noreferrer"
-                        class="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-zinc-800 text-sm font-medium text-zinc-300 hover:border-amber-400/50 hover:text-amber-300 transition-colors">
+                        class="inline-flex items-center gap-2 h-12 px-6 bg-zinc-900 border-2 border-zinc-800 font-bold text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white active:translate-y-0.5 transition-all w-full sm:w-auto justify-center">
                         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-amber-400">
                             <path
                                 d="M12 2.5l2.9 6.02 6.6.6-5 4.5 1.5 6.5L12 16.9 6 20.12l1.5-6.5-5-4.5 6.6-.6L12 2.5Z" />
                         </svg>
                         <span>Star on GitHub</span>
-                        <span id="star-count" class="text-zinc-500">·</span>
+                        <span id="star-count" class="text-zinc-500 font-mono font-bold">·</span>
                     </a>
 
-                    <div class="flex items-center gap-4 text-zinc-500">
+                    <div
+                        class="flex flex-wrap items-center gap-4 border-2 border-zinc-800 bg-zinc-900/50 min-h-12 py-2 px-4 text-zinc-400 w-full sm:w-auto justify-center">
                         <a href="https://bittu.dev" target="_blank" rel="noopener noreferrer"
                             aria-label="Personal Website" class="hover:text-zinc-100 transition-colors">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                                class="w-5 h-5">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
                                 <circle cx="12" cy="12" r="9" />
                                 <path
                                     d="M3 12h18M12 3c2.5 2.5 3.75 5.5 3.75 9s-1.25 6.5-3.75 9c-2.5-2.5-3.75-5.5-3.75-9S9.5 5.5 12 3Z" />
                             </svg>
                         </a>
+                        <span class="text-zinc-800 select-none font-bold hidden sm:inline">|</span>
                         <a href="https://discord.gg/CZdNvKaNNr" target="_blank" rel="noopener noreferrer"
                             aria-label="Discord Server" class="hover:text-zinc-100 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
                                 <path fill="currentColor"
-                                    d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.1.1 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.1 16.1 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02M8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12m6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12" />
+                                    d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.1.1 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.1 16.1 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06 0 .09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02M8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12m6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12" />
                             </svg>
                         </a>
+                        <span class="text-zinc-800 select-none font-bold hidden sm:inline">|</span>
                         <a href="https://github.com/Bittu5134/" target="_blank" rel="noopener noreferrer"
                             aria-label="GitHub Profile" class="hover:text-zinc-100 transition-colors">
-                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                                 <path
                                     d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.13-.02-2.04-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .98-.31 3.2 1.18a11.1 11.1 0 0 1 5.83 0c2.22-1.49 3.2-1.18 3.2-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.26 5.69.41.36.77 1.06.77 2.15 0 1.55-.01 2.8-.01 3.18 0 .31.21.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
                             </svg>
                         </a>
+                        <span class="text-zinc-800 select-none font-bold hidden sm:inline">|</span>
                         <a href="https://www.patreon.com/cw/LazyBittu" target="_blank" rel="noopener noreferrer"
-                            aria-label="Patreon" class="hover:text-zinc-100 transition-colors">
-                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            aria-label="Patreon" class="hover:text-zinc-400 transition-colors">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                                 <circle cx="15" cy="9" r="6.5" />
                                 <rect x="3.2" y="2.5" width="2.6" height="19" />
                             </svg>
@@ -109,187 +128,100 @@
             </div>
         </header>
 
-        <section class="mb-12">
-            <h2 class="text-xl font-bold mb-4 text-zinc-200">How It Works</h2>
-            <div class="bg-zinc-900/40 rounded-xl p-6">
-                <p class="text-zinc-300 leading-relaxed">
-                    <a href="https://peerjs.com/" target="_blank" rel="noopener noreferrer"
-                        class="text-indigo-400 underline hover:no-underline font-medium">PeerJS</a> lets two browsers
-                    open a direct peer-to-peer connection, but only once both sides already know each other's peer
-                    ID. It has no built-in way for two peers to find each other in the first place. PeerBasket
-                    solves that one problem. You send your peer ID to a basket, which is any string that both sides
-                    have agreed on in advance, and PeerBasket sends back the peer ID of everyone else who is
-                    currently registered in that same basket. There is no separate step to create a basket first.
-                    Sending a peer ID to a basket name is enough to create it.
-                    <br><br>
-                    A hosted instance of PeerBasket runs at
-                    <code
-                        class="text-indigo-400 font-mono text-sm bg-zinc-950 px-1.5 py-0.5 rounded">peerbasket.bittu.dev</code>.
-                    You can also self-host it using the
-                    <a href="https://github.com/Bittu5134/PeerBasket" target="_blank" rel="noopener noreferrer"
-                        class="text-indigo-400 underline hover:no-underline font-medium">GitHub repo</a>.
-                    See the <a href="#api-documentation"
-                        class="text-indigo-400 underline hover:no-underline font-medium">API docs</a> below for
-                    the full endpoint, or the <a href="#quickstart"
-                        class="text-indigo-400 underline hover:no-underline font-medium">quickstart</a> for the
-                    shortest working example.
-                </p>
-            </div>
-        </section>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch w-full min-w-0">
 
-        <section class="mb-12">
-            <h2 class="text-xl font-bold mb-4 text-zinc-200">Why does this exist?</h2>
-            <div class="bg-zinc-900/40 rounded-xl p-6">
-                <p class="text-zinc-300 leading-relaxed">
-                    PeerBasket exists so that you can build a peer-to-peer app without running your own signaling
-                    server. It intentionally skips authentication. See the
-                    <a href="#security" class="text-indigo-400 underline hover:no-underline font-medium">Security
-                        Considerations</a> section below to understand what that trade-off means in practice.
-                    PeerBasket is free and open source. If it is useful to you, consider
-                    <a href="https://www.patreon.com/cw/LazyBittu" target="_blank" rel="noopener noreferrer"
-                        class="text-indigo-400 underline hover:no-underline font-medium">supporting it on
-                        Patreon</a>.
-                </p>
-            </div>
-        </section>
-
-        <section id="api-documentation" class="mb-12">
-            <h2 class="text-xl font-bold mb-6 text-zinc-200">API Documentation</h2>
-
-            <div class="border border-zinc-800 rounded-xl overflow-hidden">
-                <div
-                    class="flex items-center justify-between flex-wrap gap-3 bg-zinc-900/60 p-4 border-b border-zinc-800">
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <span
-                            class="px-2 py-1 rounded text-xs font-bold uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">POST</span>
-                        <span
-                            class="font-mono text-sm font-semibold break-all text-zinc-200">peerbasket.bittu.dev/basket/<span
-                                class="text-cyan-400">&lt;basket_id&gt;</span><span
-                                class="text-indigo-400/80 font-normal">?limit=100</span></span>
-                    </div>
-                    <span class="text-sm text-zinc-500 whitespace-nowrap">limit optional, default: 100</span>
+            <section class="border-2 border-zinc-800 bg-zinc-900/10 p-6 flex flex-col h-full min-w-0">
+                <div class="flex-1">
+                    <h2
+                        class="text-sm font-black uppercase tracking-wider text-zinc-400 mb-4 border-b border-zinc-800 pb-1">
+                        How It Works
+                    </h2>
+                    <p class="text-zinc-300 text-base leading-relaxed font-normal">
+                        <a href="https://peerjs.com/" target="_blank" rel="noopener noreferrer"
+                            class="text-indigo-400 font-bold underline decoration-2 decoration-indigo-900/60 hover:text-indigo-300">PeerJS</a>
+                        lets two browsers open a direct peer-to-peer connection, but only once both sides already know
+                        each other's peer
+                        ID. It has no built-in way for two peers to find each other in the first place.
+                        <br><br>
+                        PeerBasket solves that one problem. You send your peer ID to a basket, which is any string that
+                        both sides
+                        have agreed on in advance, and PeerBasket sends back the peer ID of everyone else who is
+                        currently registered in that same basket.
+                    </p>
                 </div>
+                <div class="mt-8 pt-4 border-t border-zinc-800/60 space-y-2">
+                    <p class="text-xs font-semibold text-zinc-300 leading-normal break-words">
+                        Hosted Instance:
+                        <code
+                            class="font-mono text-xs font-bold text-indigo-400 bg-zinc-950 border border-zinc-850 px-1.5 py-0.5 select-all inline-block break-all">peerbasket.bittu.dev</code>
+                    </p>
+                    <p class="text-xs text-zinc-500 font-medium">
+                        Want to run your own? <a href="https://github.com/Bittu5134/PeerBasket" target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-indigo-400 font-bold underline hover:text-indigo-300">Self-host via GitHub</a>
+                    </p>
+                </div>
+            </section>
 
-                <div class="p-6 text-sm text-zinc-400">
-                    <p class="mb-6 leading-relaxed">
-                        Send your PeerJS
-                        <a href="https://peerjs.com/client/api/peer#id-string-2"
-                            class="text-indigo-400 underline hover:no-underline font-medium" target="_blank"
-                            rel="noopener noreferrer">peer ID</a>
-                        in the request body. PeerBasket registers that peer ID under the
-                        <span class="text-cyan-400 font-mono">basket_id</span> given in the URL, which can be any
-                        string you choose, and returns the peer IDs of everyone else who is currently registered
-                        under that same <span class="text-cyan-400 font-mono">basket_id</span>.
+            <section class="border-2 border-zinc-800 bg-zinc-900/10 p-6 flex flex-col h-full min-w-0">
+                <div class="flex-1">
+                    <h2
+                        class="text-sm font-black uppercase tracking-wider text-zinc-400 mb-4 border-b border-zinc-800 pb-1">
+                        Why does this exist?
+                    </h2>
+                    <p class="text-zinc-300 text-base leading-relaxed font-normal">
+                        PeerBasket exists so that you can build a peer-to-peer app without running your own signaling
+                        server. It intentionally skips authentication to keep setups instant and friction-free. See the
+                        <a href="#security"
+                            class="text-indigo-400 font-bold underline decoration-2 decoration-indigo-900/60 hover:text-indigo-300">Security
+                            Considerations</a> section below to understand what that trade-off means in practice.
+
+                        <br><br>
+                        PeerBasket is free and open source. If it is useful to you,
+                        consider
+                        <a href="https://www.patreon.com/cw/LazyBittu" target="_blank" rel="noopener noreferrer"
+                            class="text-indigo-400 font-bold underline decoration-2 decoration-indigo-900/60 hover:text-indigo-300">supporting
+                            it on Patreon</a>.
+                    </p>
+                </div>
+                <div class="mt-8 pt-4 border-t border-zinc-800/60 space-y-3">
+                    <div class="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider">
+                        <a href="#api-documentation" class="text-indigo-400 hover:text-indigo-300 underline">API
+                            Docs</a>
+                        <span class="text-zinc-800 select-none">•</span>
+                        <a href="#quickstart" class="text-indigo-400 hover:text-indigo-300 underline">Quickstart</a>
+                        <span class="text-zinc-800 select-none">•</span>
+                        <a href="https://github.com/Bittu5134/PeerBasket/tree/main/examples" target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-indigo-400 hover:text-indigo-300 underline">Examples</a>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quickstart"
+                class="border-2 border-zinc-800 bg-zinc-900/20 p-6 flex flex-col h-full md:col-span-2 lg:col-span-1 min-w-0">
+                <div class="flex-1 w-full min-w-0">
+                    <h2
+                        class="text-sm font-black uppercase tracking-wider text-zinc-400 mb-4 border-b border-zinc-800 pb-1">
+                        Quickstart
+                    </h2>
+                    <p class="text-zinc-300 text-base leading-relaxed font-normal mb-4">
+                        Two peers post to the same basket string, then instantly connect to any active peer IDs returned
+                        in the response.
                     </p>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="text-sm text-zinc-500 mb-2 font-semibold uppercase tracking-wide">Request Body</p>
-                            <div
-                                class="relative group bg-zinc-950 p-4 rounded-xl font-mono text-sm h-28 flex items-center overflow-x-auto text-indigo-300">
-                                <button onclick="copyCode('json-req', this)"
-                                    class="absolute top-2.5 right-2.5 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-900/80 px-2 py-1 rounded-md transition-colors">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                                        class="w-3.5 h-3.5">
-                                        <rect x="9" y="9" width="11" height="11" rx="2" />
-                                        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
-                                    </svg>
-                                    <span>Copy</span>
-                                </button>
-                                <pre class="w-full"><code id="json-req" class="language-json">{
-  "peer_id": "peerjs-abc-123"
-}</code></pre>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="text-sm text-zinc-500 mb-2 font-semibold uppercase tracking-wide">Response</p>
-                            <div
-                                class="relative group bg-zinc-950 p-4 rounded-xl font-mono text-sm min-h-28 overflow-x-auto text-emerald-400">
-                                <button onclick="copyCode('json-res', this)"
-                                    class="absolute top-2.5 right-2.5 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-900/80 px-2 py-1 rounded-md transition-colors">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                                        class="w-3.5 h-3.5">
-                                        <rect x="9" y="9" width="11" height="11" rx="2" />
-                                        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
-                                    </svg>
-                                    <span>Copy</span>
-                                </button>
-                                <pre class="w-full"><code id="json-res" class="language-json">{
-  "basket_id": "room-101",
-  "peers": ["peerjs-id-001", "peerjs-id-002"],
-  "total_peers": 2,
-  "peers_returned": 2
-}</code></pre>
-                            </div>
-                        </div>
-                    </div>
-
-                    <ul class="mt-6 space-y-2 text-sm text-zinc-500 border-t border-zinc-900 pt-4 font-sans">
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span>The <span class="font-mono text-zinc-400">peers</span> list in the response
-                                includes your own peer ID. Filter it out on the client side before connecting, so
-                                that you do not try to connect to yourself.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span>A peer is automatically dropped from its basket if it has not posted to that
-                                basket in the last 30 seconds.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span>"Active" means a recent heartbeat, not a connection that is open right now. A peer
-                                that crashed a few seconds ago can still appear in the list for up to 30 seconds.
-                                Treat the moment a PeerJS connection actually opens as the real liveness check, and
-                                make sure your code handles the case where it never opens.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span><strong>Rate limit:</strong> PeerBasket allows 20 requests per minute. If you poll
-                                no faster than every 10 seconds, you will stay comfortably inside that limit.
-                                Exceeding it returns an HTTP 429 response and you will be blocked for the next 10 seconds.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span>Basket IDs cannot be reserved. Anyone who knows a basket ID can join that basket
-                                and see everyone else who is in it.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span>Use a long, random, unguessable string as your
-                                <span class="font-mono text-zinc-400">basket_id</span> for anything other than a
-                                throwaway demo, the same way you would treat an unlisted URL.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 font-bold select-none">•</span>
-                            <span>The value of <span class="font-mono text-zinc-400">peers_returned</span> will be
-                                lower than <span class="font-mono text-zinc-400">total_peers</span> whenever
-                                <span class="font-mono text-zinc-400">limit</span> is smaller than the basket's
-                                actual size.</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <section id="quickstart" class="mb-12">
-            <h2 class="text-xl font-bold mb-4 text-zinc-200">Quickstart</h2>
-            <div class="bg-zinc-900/40 rounded-xl p-6">
-                <p class="text-zinc-300 leading-relaxed mb-5">
-                    Barebones example. Two peers post to the same basket, then connect to whatever the
-                    response gives back.
-                </p>
-                <div class="relative group bg-zinc-950 rounded-xl p-4 font-mono text-sm overflow-x-auto">
-                    <button onclick="copyCode('qs-code', this)"
-                        class="absolute top-2.5 right-2.5 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 bg-zinc-900/80 px-2 py-1 rounded-md transition-colors">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                            class="w-3.5 h-3.5">
-                            <rect x="9" y="9" width="11" height="11" rx="2" />
-                            <path d="M5 15V5a2 2 0 0 1 2-2h10" />
-                        </svg>
-                        <span>Copy</span>
-                    </button>
-                    <pre><code id="qs-code" class="language-javascript">const peer = new Peer(); // from the peerjs package
+                    <div class="relative bg-zinc-950 border-2 border-zinc-800 p-4 font-mono text-xs overflow-x-auto text-zinc-300 shadow-inner max-w-full
+                        [&::-webkit-scrollbar]:h-2 
+                        [&::-webkit-scrollbar-track]:bg-zinc-950
+                        [&::-webkit-scrollbar-thumb]:bg-zinc-800 
+                        [&::-webkit-scrollbar-thumb]:hover:bg-zinc-700
+                        [scrollbar-color:theme(colors.zinc.800)_theme(colors.zinc.950)]
+                        [scrollbar-width:thin] w-full">
+                        <button onclick="copyCode('qs-code', this)"
+                            class="absolute top-2 right-2 flex items-center h-7 px-3 bg-zinc-900 border border-zinc-700 text-[10px] font-black uppercase tracking-wider text-zinc-400 hover:text-white hover:border-zinc-500 active:translate-y-0.5 transition-all z-10">
+                            <span>Copy</span>
+                        </button>
+                        <pre class="mt-4 w-full"><code id="qs-code" class="language-javascript">const peer = new Peer(); // from peerjs
 
 peer.on('open', async (myId) => {
   const res = await fetch('https://peerbasket.bittu.dev/basket/my-basket-id', {
@@ -301,76 +233,225 @@ peer.on('open', async (myId) => {
 
   peers.filter(id => id !== myId).forEach(id => peer.connect(id));
 });</code></pre>
+                    </div>
                 </div>
-                <p class="text-zinc-400 text-sm leading-relaxed mt-4">
-                    Call the same <span class="font-mono text-zinc-400">fetch</span> again every 10 seconds or so to
-                    stay registered and pick up new peers. See the
-                    <a href="https://github.com/Bittu5134/PeerBasket/tree/main/examples" target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-indigo-400 underline hover:no-underline font-medium">examples folder</a>
-                    for more use cases.
+                <div class="mt-6 pt-4 border-t border-zinc-800/60">
+                    <p class="text-zinc-500 text-xs font-medium leading-relaxed">
+                        <strong
+                            class="text-zinc-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Polling
+                            Tip:</strong>
+                        Call this <code
+                            class="font-mono bg-zinc-950 px-1 border border-zinc-800 font-bold text-zinc-300">fetch</code>
+                        every 10 seconds to stay alive in the pool and catch incoming peers.
+                    </p>
+                </div>
+            </section>
+        </div>
+
+        <section id="api-documentation" class="mt-12 border-4 border-zinc-800 bg-zinc-900/10 min-w-0 overflow-hidden">
+            <div class="flex items-center justify-between flex-wrap gap-4 bg-zinc-900 p-5 border-b-4 border-zinc-800">
+                <div class="flex items-center gap-4 flex-wrap min-w-0">
+                    <span
+                        class="inline-flex items-center h-7 px-3 font-black text-xs uppercase bg-indigo-500 text-zinc-950 border-2 border-zinc-950 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                        POST
+                    </span>
+                    <span class="font-mono text-sm sm:text-base font-bold break-all text-zinc-100">
+                        peerbasket.bittu.dev/basket/<span class="text-cyan-400">&lt;basket_id&gt;</span><span
+                            class="text-indigo-400 font-bold">?limit=100</span>
+                    </span>
+                </div>
+                <span
+                    class="text-[10px] font-black uppercase tracking-widest text-zinc-400 border border-zinc-800 bg-zinc-950 px-3 py-1 shrink-0">
+                    limit optional, default: 100
+                </span>
+            </div>
+
+            <div class="p-4 sm:p-8">
+                <p class="text-zinc-300 text-base leading-relaxed mb-8 max-w-4xl font-normal">
+                    Send your PeerJS
+                    <a href="https://peerjs.com/client/api/peer#id-string-2"
+                        class="text-indigo-400 font-bold underline decoration-2 decoration-indigo-900/60 hover:text-indigo-300"
+                        target="_blank" rel="noopener noreferrer">peer ID</a>
+                    in the request body. PeerBasket registers that peer ID under the
+                    <span
+                        class="text-cyan-400 font-mono font-bold bg-zinc-950 px-2 py-0.5 border border-zinc-850 inline-block">basket_id</span>
+                    given in the URL, which can be any string you choose, and returns
+                    the peer IDs of everyone else who is currently registered under that
+                    same
+                    <span
+                        class="text-cyan-400 font-mono font-bold bg-zinc-950 px-2 py-0.5 border border-zinc-850 inline-block">basket_id</span>.
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 min-w-0">
+                    <div class="border-2 border-zinc-800 bg-zinc-950/60 p-5 relative mt-2 min-w-0">
+                        <span
+                            class="absolute top-0 left-6 -translate-y-1/2 bg-[#09090b] px-3 border border-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                            Request Body
+                        </span>
+                        <div
+                            class="relative bg-zinc-950 p-2 font-mono text-xs h-28 overflow-x-auto text-indigo-300 mt-2 block w-full">
+                            <button onclick="copyCode('json-req', this)"
+                                class="absolute top-2 right-2 flex items-center h-6 px-2.5 bg-zinc-900 border border-zinc-700 text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white hover:border-zinc-500 active:translate-y-0.5 transition-all z-10">
+                                <span>Copy</span>
+                            </button>
+                            <pre class="w-full pt-6"><code>{
+  "peer_id": "peerjs-abc-123"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="border-2 border-zinc-800 bg-zinc-950/60 p-5 relative mt-2 min-w-0">
+                        <span
+                            class="absolute top-0 left-6 -translate-y-1/2 bg-[#09090b] px-3 border border-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                            Response
+                        </span>
+                        <div
+                            class="relative bg-zinc-950 p-2 font-mono text-xs min-h-28 overflow-x-auto text-emerald-400 mt-2 block w-full">
+                            <button onclick="copyCode('json-res', this)"
+                                class="absolute top-2 right-2 flex items-center h-6 px-2.5 bg-zinc-900 border border-zinc-700 text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white hover:border-zinc-500 active:translate-y-0.5 transition-all z-10">
+                                <span>Copy</span>
+                            </button>
+                            <pre class="w-full pt-6"><code>{
+  "basket_id": "room-101",
+  "peers": ["peerjs-id-001", "peerjs-id-002"],
+  "total_peers": 2,
+  "peers_returned": 2
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <ul
+                    class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 text-sm font-medium text-zinc-300 border-t-2 border-zinc-800 pt-8 leading-relaxed">
+                    <li class="flex items-start gap-3">
+                        <span class="text-indigo-500 font-black select-none text-base leading-none shrink-0">■</span>
+                        <span>The
+                            <span
+                                class="font-mono bg-zinc-950 border border-zinc-850 px-1 text-zinc-200 font-bold">peers</span>
+                            list in the response includes your own peer ID. Filter it out on
+                            the client side before connecting, so that you do not try to
+                            connect to yourself.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-indigo-500 font-black select-none text-base leading-none shrink-0">■</span>
+                        <span>A peer is automatically dropped from its basket if it has not
+                            posted to that basket in the last 30 seconds.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-indigo-500 font-black select-none text-base leading-none shrink-0">■</span>
+                        <span>"Active" means a recent heartbeat, not a connection that is
+                            open right now. A peer that crashed a few seconds ago can still
+                            appear in the list for up to 30 seconds. Treat the moment a
+                            PeerJS connection actually opens as the real liveness check, and
+                            make sure your code handles the case where it never opens.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-indigo-500 font-black select-none text-base leading-none shrink-0">■</span>
+                        <span><strong>Rate limit:</strong> PeerBasket allows 20 requests per
+                            minute. If you poll no faster than every 10 seconds, you will
+                            stay comfortably inside that limit. Exceeding it returns an HTTP
+                            429 response and you will be blocked for the next 10
+                            seconds.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-indigo-500 font-black select-none text-base leading-none shrink-0">■</span>
+                        <span>Basket IDs cannot be reserved. Anyone who knows a basket ID can
+                            join that basket and see everyone else who is in it.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-indigo-500 font-black select-none text-base leading-none shrink-0">■</span>
+                        <span>Use a long, random, unguessable string as your
+                            <span
+                                class="font-mono bg-zinc-950 border border-zinc-850 px-1 text-zinc-200 font-bold inline-block">basket_id</span>
+                            for anything other than a throwaway demo, the same way you would
+                            treat an unlisted URL.</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="security" class="mt-8 border-4 border-amber-600/20 bg-amber-500/5 p-6 sm:p-8 min-w-0">
+            <h2
+                class="text-xs font-black uppercase tracking-widest text-amber-500 mb-4 border-b border-amber-500/20 pb-2">
+                Security Considerations
+            </h2>
+            <div class="space-y-4 text-sm font-semibold text-amber-200/90 leading-relaxed max-w-5xl">
+                <p>
+                    PeerBasket does no authentication, by design. A basket ID is the
+                    <em>only</em> thing that stands between a basket and the public.
+                    Treat a basket ID like an unlisted URL rather than a password, and
+                    pick something unguessable for anything that is not a throwaway
+                    demo, as recommended above.
+                </p>
+                <p>
+                    This also means that PeerBasket cannot vouch for who is behind any
+                    peer ID it returns. Anyone who knows your basket ID can register
+                    their own peer into it, and your app will see that peer as just
+                    another member of the basket. If you are building anything beyond a
+                    quick prototype, verify identity at the application layer instead of
+                    trusting the raw peer list on its own. Two simple ways to do that
+                    are a shared secret exchanged out of band, or a handshake performed
+                    once the PeerJS connection actually opens.
                 </p>
             </div>
         </section>
 
-        <section id="security" class="mb-12">
-            <h2 class="text-xl font-bold mb-4 text-zinc-200">Security Considerations</h2>
-            <div class="bg-amber-500/5 rounded-xl p-6">
-                <p class="text-amber-200/90 leading-relaxed mb-4">
-                    PeerBasket does no authentication, by design. A basket ID is the <em>only</em> thing that stands
-                    between a basket and the public. Treat a basket ID like an unlisted URL rather than a password,
-                    and pick something unguessable for anything that is not a throwaway demo, as recommended above.
-                </p>
-                <p class="text-amber-200/90 leading-relaxed">
-                    This also means that PeerBasket cannot vouch for who is behind any peer ID it returns. Anyone
-                    who knows your basket ID can register their own peer into it, and your app will see that peer as
-                    just another member of the basket. If you are building anything beyond a quick prototype, verify
-                    identity at the application layer instead of trusting the raw peer list on its own. Two simple
-                    ways to do that are a shared secret exchanged out of band, or a handshake performed once the
-                    PeerJS connection actually opens.
-                </p>
-            </div>
-        </section>
+        <div class="mt-8 border-4 border-zinc-800 bg-zinc-950 p-2 overflow-hidden"
+            onerror="this.style.display = 'none'">
+            <img src="./banner.webp" alt="PeerBasket Operational Grid Structure Layout Map"
+                class="w-full h-auto max-h-48 object-contain opacity-75 bg-[#eacfb4] select-none pointer-events-none"
+                onerror="this.parentNode.style.display = 'none'" />
+        </div>
 
-        <footer class="border-t border-zinc-900 pt-10 mt-16">
+        <footer class="mt-8 border-4 border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
             <div class="flex flex-col items-center text-center gap-4">
-                <p class="text-zinc-400 text-sm max-w-md leading-relaxed">
-                    Built solo by <a href="https://bittu.dev" target="_blank" rel="noopener noreferrer"
-                        class="text-zinc-200 font-medium underline hover:no-underline">Bittu</a>. I'm also open to
-                    interesting work if you are hiring. No pressure 👀
+                <p class="text-zinc-300 text-base max-w-xl leading-relaxed font-semibold">
+                    Built solo by
+                    <a href="https://bittu.dev" target="_blank" rel="noopener noreferrer"
+                        class="text-zinc-100 font-black underline decoration-2 decoration-indigo-600 hover:text-white">Bittu</a>.
+                    I'm also open to interesting work if you are hiring. No pressure
+                    👀
                 </p>
-                <div class="flex items-center justify-center gap-5 text-zinc-500 mt-2">
+
+                <div
+                    class="flex flex-wrap items-center justify-center gap-5 border-2 border-zinc-800 bg-zinc-950 px-5 min-h-11 py-2 mt-1">
                     <a href="https://bittu.dev" target="_blank" rel="noopener noreferrer" aria-label="Personal site"
-                        class="hover:text-zinc-200 transition-colors">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5">
+                        class="hover:text-zinc-400 transition-colors">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
                             <circle cx="12" cy="12" r="9" />
                             <path
                                 d="M3 12h18M12 3c2.5 2.5 3.75 5.5 3.75 9s-1.25 6.5-3.75 9c-2.5-2.5-3.75-5.5-3.75-9S9.5 5.5 12 3Z" />
                         </svg>
                     </a>
+                    <span class="text-zinc-800 select-none font-bold">|</span>
                     <a href="https://discord.gg/CZdNvKaNNr" target="_blank" rel="noopener noreferrer"
-                        aria-label="Discord server" class="hover:text-zinc-200 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5">
+                        aria-label="Discord server" class="hover:text-zinc-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
                             <path fill="currentColor"
-                                d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.1.1 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.1 16.1 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02M8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12m6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12" />
+                                d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.1.1 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.1 16.1 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06 0 .09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02M8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12m6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12" />
                         </svg>
                     </a>
+                    <span class="text-zinc-800 select-none font-bold">|</span>
                     <a href="https://github.com/Bittu5134/" target="_blank" rel="noopener noreferrer"
-                        aria-label="GitHub profile" class="hover:text-zinc-200 transition-colors">
-                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        aria-label="GitHub profile" class="hover:text-zinc-400 transition-colors">
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                             <path
                                 d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.13-.02-2.04-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .98-.31 3.2 1.18a11.1 11.1 0 0 1 5.83 0c2.22-1.49 3.2-1.18 3.2-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.26 5.69.41.36.77 1.06.77 2.15 0 1.55-.01 2.8-.01 3.18 0 .31.21.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
                         </svg>
                     </a>
+                    <span class="text-zinc-800 select-none font-bold">|</span>
                     <a href="https://www.patreon.com/cw/LazyBittu" target="_blank" rel="noopener noreferrer"
-                        aria-label="Patreon" class="hover:text-zinc-200 transition-colors">
-                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        aria-label="Patreon" class="hover:text-zinc-400 transition-colors">
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                             <circle cx="15" cy="9" r="6.5" />
                             <rect x="3.2" y="2.5" width="2.6" height="19" />
                         </svg>
                     </a>
                 </div>
-                <p class="text-zinc-600 text-sm mt-2">PeerBasket is open source, with no strings attached.</p>
+
+                <p class="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2">
+                    PeerBasket is open source, with no strings attached.
+                </p>
             </div>
         </footer>
     </div>
@@ -382,20 +463,22 @@ peer.on('open', async (myId) => {
             const text = document.getElementById(id).innerText;
             navigator.clipboard.writeText(text).then(() => {
                 const original = btn.innerHTML;
-                btn.innerHTML = '<span>Copied!</span>';
-                setTimeout(() => { btn.innerHTML = original; }, 1500);
+                btn.innerHTML = "<span>Copied!</span>";
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                }, 1500);
             });
         }
 
         (function loadStarCount() {
-            const el = document.getElementById('star-count');
+            const el = document.getElementById("star-count");
             if (!el) return;
 
             const render = (count) => {
-                el.innerHTML = `&middot; <span class="font-semibold text-zinc-300">${count.toLocaleString()}</span>`;
+                el.innerHTML = `&middot; <span class="font-mono font-black text-zinc-300">${count.toLocaleString()}</span>`;
             };
 
-            const cached = sessionStorage.getItem('pb-star-count');
+            const cached = sessionStorage.getItem("pb-star-count");
             if (cached !== null) {
                 render(Number(cached));
                 return;
@@ -404,11 +487,13 @@ peer.on('open', async (myId) => {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-            fetch('https://api.github.com/repos/Bittu5134/PeerBasket', { signal: controller.signal })
-                .then(r => r.ok ? r.json() : Promise.reject())
-                .then(data => {
-                    if (typeof data.stargazers_count === 'number') {
-                        sessionStorage.setItem('pb-star-count', data.stargazers_count);
+            fetch("https://api.github.com/repos/Bittu5134/PeerBasket", {
+                signal: controller.signal,
+            })
+                .then((r) => (r.ok ? r.json() : Promise.reject()))
+                .then((data) => {
+                    if (typeof data.stargazers_count === "number") {
+                        sessionStorage.setItem("pb-star-count", data.stargazers_count);
                         render(data.stargazers_count);
                     } else {
                         el.remove();
@@ -418,7 +503,6 @@ peer.on('open', async (myId) => {
                 .finally(() => clearTimeout(timeoutId));
         })();
     </script>
-
 </body>
 
 </html>
