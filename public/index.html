@@ -134,19 +134,14 @@
                     <div class="flex-1">
                         <h2
                             class="text-sm font-black uppercase tracking-wider text-zinc-400 mb-4 border-b border-zinc-800 pb-1">
-                            How It Works
+                            Problem & Solution
                         </h2>
                         <p class="text-zinc-300 text-base leading-relaxed font-normal">
-                            <a href="https://peerjs.com/" target="_blank" rel="noopener noreferrer"
-                                class="text-indigo-400 font-bold underline decoration-2 decoration-indigo-900/60 hover:text-indigo-300">PeerJS</a>
-                            lets two browsers open a direct peer-to-peer connection, but only once both sides already know
-                            each other's peer
-                            ID. It has no built-in way for two peers to find each other in the first place.
+                            WebRTC (via <a href="https://peerjs.com/" target="_blank" rel="noopener noreferrer"
+                                class="text-indigo-400 font-bold underline decoration-2 decoration-indigo-900/60 hover:text-indigo-300">PeerJS</a>)
+                            enables direct P2P connections, but only after peers exchange their Peer IDs. There is no built-in discovery protocol.
                             <br><br>
-                            PeerBasket solves that one problem. You send your peer ID to a basket, which is any string that
-                            both sides
-                            have agreed on in advance, and PeerBasket sends back the peer ID of everyone else who is
-                            currently registered in that same basket.
+                            PeerBasket solves this signaling gap. You POST your Peer ID under a shared room name (a basket), and PeerBasket returns the Peer IDs of everyone else currently active in it.
                         </p>
                     </div>
                     <div class="mt-8 pt-4 border-t border-zinc-800/60 space-y-2">
@@ -167,21 +162,16 @@
                     <div class="flex-1">
                         <h2
                             class="text-sm font-black uppercase tracking-wider text-zinc-400 mb-4 border-b border-zinc-800 pb-1">
-                            Why does this exist?
+                            Why PeerBasket?
                         </h2>
                         <p class="text-zinc-300 text-base leading-relaxed font-normal">
-                            PeerBasket exists so that you can build a peer-to-peer app without running your own signaling
-                            server. It intentionally skips authentication to keep setups instant and friction-free. See the
+                            PeerBasket is a lightweight lookup table. It intentionally skips authentication to keep setups instant and friction-free. See the
                             <a href="#security"
                                 class="text-indigo-400 font-bold underline decoration-2 decoration-indigo-900/60 hover:text-indigo-300">Security
-                                Considerations</a> section below to understand what that trade-off means in practice.
+                                Considerations</a> section below for more details.
 
                             <br><br>
-                            PeerBasket is free and open source. If it is useful to you,
-                            consider
-                            <a href="https://www.patreon.com/cw/LazyBittu" target="_blank" rel="noopener noreferrer"
-                                class="text-indigo-400 font-bold underline decoration-2 decoration-indigo-900/60 hover:text-indigo-300">supporting
-                                it on Patreon</a>.
+                            Inactive peer heartbeats are automatically pruned after 30 seconds to clean up zombie rooms. It is free, open source, and backed by a fast in-memory Redis cache.
                         </p>
                     </div>
                     <div class="mt-8 pt-4 border-t border-zinc-800/60 space-y-3">
