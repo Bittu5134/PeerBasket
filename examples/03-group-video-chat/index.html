@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+    ===========================================================================
+    EXAMPLE 3: GROUP VIDEO ROOM (Mesh Video Call)
+    
+    PURPOSE:
+    Demonstrates how to use PeerBasket to bootstrap a multi-way mesh video call.
+    It periodically queries PeerBasket, automatically calls any new peer that joins
+    the room, and automatically closes/removes video feeds when peers stop sending
+    heartbeats to PeerBasket (e.g. they closed their tab).
+    ===========================================================================
+  -->
+  <title>PeerBasket - Group Video Call</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+    video { width: 100%; aspect-ratio: 4/3; background: #1f2937; border-radius: 6px; object-fit: cover; }
+    .video-container { position: relative; }
+    .label { position: absolute; bottom: 8px; left: 8px; background: rgba(0, 0, 0, 0.6); color: white; padding: 2px 6px; font-size: 11px; border-radius: 4px; font-family: monospace; }
+    input, button { padding: 8px 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>🎥 Group Video Room</h1>
+  <p>Every client that joins this room is automatically added to a multi-way mesh video call. PeerBasket coordinates peer discovery, enabling each peer to call everyone else directly.</p>
+
+  <div style="margin-bottom: 15px;">
+    <input id="room-input" type="text" value="group-video-demo" placeholder="Room name...">
+    <button id="btn-join" style="background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer;">Join Call</button>
+  </div>
+
+  <p>My Peer ID: <code id="my-id">inactive</code></p>
+  <p>Status: <span id="status" style="font-weight: bold; color: #4f46e5;">Offline (Waiting for camera access...)</span></p>
+
+  <div class="video-grid" id="video-grid">
+    <!-- Local video -->
+    <div class="video-container" id="local-container" style="display: none;">
+      <video id="local-video" autoplay muted playsinline></video>
+      <span class="label">You</span>
+    </div>
+  </div>
+
+  <!-- PeerJS Client -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    const API_URL = "https://peerbasket.bittu.dev";
+    const POLL_INTERVAL_MS = 10000;
+
+    let peer = null;
+    let localStream = null;
+    let pollTimer = null;
+    const activeCalls = new Map(); // peerId -> mediaCall
+
+    const myIdEl = document.getElementById("my-id");
+    const statusEl = document.getElementById("status");
+    const roomInput = document.getElementById("room-input");
+    const btnJoin = document.getElementById("btn-join");
+    const videoGrid = document.getElementById("video-grid");
+    const localContainer = document.getElementById("local-container");
+    const localVideo = document.getElementById("local-video");
+
+    // Request camera access on load
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        localStream = stream;
+        localVideo.srcObject = stream;
+        localContainer.style.display = "block";
+        statusEl.textContent = "Camera access granted. Ready to join.";
+      })
+      .catch(err => {
+        statusEl.textContent = "Error: Camera/mic access denied.";
+        console.error(err);
+      });
+
+    btnJoin.addEventListener("click", () => {
+      if (!localStream) return alert("Please grant camera/mic access first");
+      const roomId = roomInput.value.trim();
+      if (!roomId) return alert("Please enter a room name");
+
+      btnJoin.disabled = true;
+      roomInput.disabled = true;
+      statusEl.textContent = "Connecting to PeerJS broker...";
+
+      peer = new Peer();
+
+      peer.on("open", (id) => {
+        myIdEl.textContent = id;
+        statusEl.textContent = "Joined room. Fetching peers...";
+        
+        // Start polling PeerBasket to discover others
+        joinBasket(roomId);
+        pollTimer = setInterval(() => joinBasket(roomId), POLL_INTERVAL_MS);
+      });
+
+      // Handle incoming calls from peers who joined after us
+      peer.on("call", (call) => {
+        call.answer(localStream);
+        setupRemoteVideo(call);
+      });
+
+      peer.on("error", (err) => {
+        console.error("PeerJS error:", err);
+      });
+    });
+
+    /*
+      =========================================================================
+      ⚡ CORE PEERBASKET SIGNALING LOGIC ⚡
+      
+      This block polls PeerBasket, registers our presence, and fetches other active
+      participants.
+      1. Calls new peers: It initiates media calls to any discovered peer not in activeCalls.
+      2. Prunes stale peers: If a peer's heartbeat expires and they disappear from PeerBasket's
+         roster, we close their call and destroy their HTML video container.
+      =========================================================================
+    */
+    async function joinBasket(roomId) {
+      try {
+        // Send a POST request containing our peer_id to register under the basket
+        const response = await fetch(`${API_URL}/basket/${roomId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ peer_id: peer.id })
+        });
+
+        if (!response.ok) return;
+        const data = await response.json();
+
+        // 1. Call any new peers returned by PeerBasket
+        data.peers
+          .filter(id => id !== peer.id && !activeCalls.has(id))
+          .forEach(id => {
+            const call = peer.call(id, localStream);
+            setupRemoteVideo(call);
+          });
+
+        // 2. Prune any stale connections that are no longer in the PeerBasket room roster
+        activeCalls.forEach((call, id) => {
+          if (!data.peers.includes(id)) {
+            call.close();
+            removeRemoteVideo(id);
+          }
+        });
+      } catch (err) {
+        console.error("Lobby discovery error:", err);
+      }
+    }
+    /*
+      =========================================================================
+      END OF PEERBASKET SIGNALING LOGIC
+      =========================================================================
+    */
+
+    function setupRemoteVideo(call) {
+      activeCalls.set(call.peer, call);
+
+      // Create a container and video element for the remote peer
+      const container = document.createElement("div");
+      container.className = "video-container";
+      container.id = `container-${call.peer}`;
+
+      const video = document.createElement("video");
+      video.autoplay = true;
+      video.playsInline = true;
+      container.appendChild(video);
+
+      const label = document.createElement("span");
+      label.className = "label";
+      label.textContent = call.peer.slice(0, 6) + "...";
+      container.appendChild(label);
+
+      call.on("stream", (remoteStream) => {
+        video.srcObject = remoteStream;
+        videoGrid.appendChild(container);
+      });
+
+      call.on("close", () => {
+        removeRemoteVideo(call.peer);
+      });
+    }
+
+    function removeRemoteVideo(peerId) {
+      const container = document.getElementById(`container-${peerId}`);
+      if (container) container.remove();
+      activeCalls.delete(peerId);
+    }
+  </script>
+</body>
+</html>

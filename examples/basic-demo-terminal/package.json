@@ -1,9 +1,0 @@
-{
-  "name": "peerbasket-node-examples",
-  "private": true,
-  "type": "module",
-  "description": "Node.js examples for PeerBasket, using PeerJS's beta Node.js support.",
-  "dependencies": {
-    "peerjs": "^1.5.4"
-  }
-}

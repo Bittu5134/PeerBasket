@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+    ===========================================================================
+    EXAMPLE 1: 1v1 MATCHMAKER CHAT
+    
+    PURPOSE:
+    Demonstrates how to use PeerBasket as a 1:1 matchmaking signaling server.
+    It polls a basket room, pairs up with the first available partner it finds,
+    and immediately ceases polling to conserve resources and stay under rate limits.
+    ===========================================================================
+  -->
+  <title>PeerBasket - Matchmaker Chat</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+    .box { border: 2px dashed #cbd5e1; padding: 20px; text-align: center; margin: 20px 0; border-radius: 6px; }
+    .matched { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+    #chat-log { height: 200px; border: 1px solid #e4e4e7; border-radius: 4px; overflow-y: auto; padding: 10px; background: #fafafa; list-style: none; margin: 15px 0; }
+    #chat-log li { padding: 4px 0; border-bottom: 1px solid #f4f4f5; }
+    input, button { padding: 8px 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>🤝 1:1 Matchmaker Chat</h1>
+  <p>Pairs you up with a random partner. Uses PeerBasket to poll until a partner is found, opens a direct P2P chat connection, and then <strong>stops polling immediately</strong>.</p>
+
+  <div id="match-box" class="box">
+    <h3 id="match-title">Ready to find a partner?</h3>
+    <button id="btn-match" style="background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer;">Find a Match</button>
+  </div>
+
+  <p>My Peer ID: <code id="my-id">connecting...</code></p>
+  <p>Status: <span id="status" style="font-weight: bold; color: #4f46e5;">Offline</span></p>
+
+  <div id="chat-section" style="display: none;">
+    <ul id="chat-log"></ul>
+    <div style="display: flex; gap: 8px;">
+      <input id="chat-input" type="text" placeholder="Type a message..." style="flex-grow: 1;">
+      <button id="btn-send" style="background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer;">Send</button>
+    </div>
+  </div>
+
+  <!-- PeerJS Client -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    const API_URL = "https://peerbasket.bittu.dev";
+    const MATCH_BASKET = "peerbasket-demo-matchmaker-chat";
+    const POLL_INTERVAL_MS = 10000;
+
+    const peer = new Peer();
+    let pollTimer = null;
+    let partnerConnection = null;
+
+    const myIdEl = document.getElementById("my-id");
+    const statusEl = document.getElementById("status");
+    const btnMatch = document.getElementById("btn-match");
+    const matchBox = document.getElementById("match-box");
+    const matchTitle = document.getElementById("match-title");
+    const chatSection = document.getElementById("chat-section");
+    const chatInput = document.getElementById("chat-input");
+    const btnSend = document.getElementById("btn-send");
+    const chatLog = document.getElementById("chat-log");
+
+    peer.on("open", (id) => {
+      myIdEl.textContent = id;
+      statusEl.textContent = "Ready";
+    });
+
+    // Fired if the other peer finds us and initiates the connection
+    peer.on("connection", (conn) => {
+      if (partnerConnection) {
+        conn.close(); // Already matched, reject
+        return;
+      }
+      setupMatch(conn);
+    });
+
+    btnMatch.addEventListener("click", () => {
+      btnMatch.disabled = true;
+      statusEl.textContent = "Searching for a partner...";
+      matchTitle.textContent = "Looking for a partner...";
+      
+      // Begin searching
+      findPartner();
+      pollTimer = setInterval(findPartner, POLL_INTERVAL_MS);
+    });
+
+    /*
+      =========================================================================
+      ⚡ CORE PEERBASKET SIGNALING LOGIC ⚡
+      
+      This block interacts directly with PeerBasket. We register our Peer ID 
+      on the server and receive the list of other active peers in return. 
+      As soon as we find another player in the roster, we connect to them 
+      and cease polling immediately to avoid rate limit bans.
+      =========================================================================
+    */
+    async function findPartner() {
+      if (partnerConnection) return; // Prevent double connections
+
+      try {
+        // Send a POST request containing our peer_id to register under the basket
+        const response = await fetch(`${API_URL}/basket/${MATCH_BASKET}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ peer_id: peer.id })
+        });
+
+        if (!response.ok) return;
+        const data = await response.json();
+        
+        // PeerBasket returns the roster array inside data.peers
+        // We find the first player who isn't us
+        const candidate = data.peers.find(id => id !== peer.id);
+
+        if (candidate && !partnerConnection) {
+          // Discovery completed! Now handoff to PeerJS to connect
+          const conn = peer.connect(candidate);
+          setupMatch(conn);
+        }
+      } catch (err) {
+        console.error("Matchmaking error:", err);
+      }
+    }
+
+    function setupMatch(conn) {
+      partnerConnection = conn;
+      
+      // CRITICAL PEERBASKET STEP: Stop polling PeerBasket immediately once matched
+      clearInterval(pollTimer);
+
+      conn.on("open", () => {
+        statusEl.textContent = "Connected & Chatting!";
+        matchTitle.textContent = `Matched with ${conn.peer}!`;
+        matchBox.classList.add("matched");
+        btnMatch.style.display = "none";
+        chatSection.style.display = "block";
+        logMessage("System", "Secure direct P2P chat connection established.", "#71717a");
+      });
+
+      conn.on("data", (msg) => {
+        logMessage("Partner", msg, "#166534");
+      });
+
+      conn.on("close", () => {
+        statusEl.textContent = "Session closed.";
+        matchTitle.textContent = "Session ended.";
+        matchBox.classList.remove("matched");
+        chatSection.style.display = "none";
+        partnerConnection = null;
+        logMessage("System", "Partner disconnected.", "#ef4444");
+      });
+    }
+    /*
+      =========================================================================
+      END OF PEERBASKET SIGNALING LOGIC
+      =========================================================================
+    */
+
+    btnSend.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    function sendMessage() {
+      const msg = chatInput.value.trim();
+      if (!msg || !partnerConnection) return;
+      partnerConnection.send(msg);
+      logMessage("Me", msg, "#1e3a8a");
+      chatInput.value = "";
+    }
+
+    function logMessage(sender, text, color) {
+      const li = document.createElement("li");
+      li.style.color = color;
+      li.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      chatLog.appendChild(li);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+  </script>
+</body>
+</html>

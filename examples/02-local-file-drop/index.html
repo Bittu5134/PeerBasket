@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+    ===========================================================================
+    EXAMPLE 2: P2P FILE DROP (AirDrop Clone)
+    
+    PURPOSE:
+    Demonstrates how to use PeerBasket to manage an active roster of users.
+    It periodically polls a shared room ID, retrieves list of other active peers,
+    and displays them. Clicking "Send File" initiates direct binary data channel
+    transmission between browsers using PeerJS.
+    ===========================================================================
+  -->
+  <title>PeerBasket - P2P File Drop</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+    .peer-item { background: #f4f4f5; border: 1px solid #e4e4e7; padding: 10px; margin: 8px 0; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+    .status { font-weight: bold; color: #4f46e5; }
+    #transfer-area { border: 2px dashed #cbd5e1; border-radius: 6px; padding: 20px; text-align: center; background: #fafafa; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <h1>📁 P2P File Drop</h1>
+  <p>Select any active peer in the room, drag-and-drop / select a file, and transfer it directly from browser to browser. PeerBasket manages the active peer list in the room.</p>
+
+  <p>My Peer ID: <code id="my-id">connecting...</code></p>
+  <p>Status: <span id="status" class="status">Offline</span></p>
+
+  <h3>Available Peers in Room (<span id="peer-count">0</span>)</h3>
+  <div id="peer-list">
+    <p style="color: #71717a;">Join the lobby to see peers...</p>
+  </div>
+
+  <div id="transfer-area" style="display: none;">
+    <h4 id="partner-title">Transferring with...</h4>
+    <input id="file-input" type="file">
+    <div id="progress" style="margin-top: 10px; font-weight: bold; color: #166534;"></div>
+  </div>
+
+  <!-- PeerJS Client -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    const API_URL = "https://peerbasket.bittu.dev";
+    const LOBBY_ID = "peerbasket-demo-file-drop";
+    const POLL_INTERVAL_MS = 10000;
+
+    const peer = new Peer();
+    let currentConnection = null;
+
+    const myIdEl = document.getElementById("my-id");
+    const statusEl = document.getElementById("status");
+    const peerList = document.getElementById("peer-list");
+    const peerCountEl = document.getElementById("peer-count");
+    const transferArea = document.getElementById("transfer-area");
+    const partnerTitle = document.getElementById("partner-title");
+    const fileInput = document.getElementById("file-input");
+    const progressEl = document.getElementById("progress");
+
+    peer.on("open", (id) => {
+      myIdEl.textContent = id;
+      statusEl.textContent = "Lobby joined";
+      
+      // Periodically update the list of peers in the room
+      updateRoomRoster();
+      setInterval(updateRoomRoster, POLL_INTERVAL_MS);
+    });
+
+    // Listen for incoming connection
+    peer.on("connection", (conn) => {
+      setupConnection(conn);
+    });
+
+    /*
+      =========================================================================
+      ⚡ CORE PEERBASKET SIGNALING LOGIC ⚡
+      
+      This block polls the PeerBasket room endpoints, registers this peer's
+      status, and fetches other active peer IDs to render them in the room roster.
+      =========================================================================
+    */
+    async function updateRoomRoster() {
+      try {
+        // Send a POST request containing our peer_id to register under the basket
+        const response = await fetch(`${API_URL}/basket/${LOBBY_ID}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ peer_id: peer.id })
+        });
+
+        if (!response.ok) return;
+        const data = await response.json();
+        
+        // PeerBasket returns the roster array inside data.peers
+        renderPeers(data.peers);
+      } catch (err) {
+        console.error("Failed to update roster:", err);
+      }
+    }
+
+    function renderPeers(peers) {
+      // Filter out our own ID
+      const others = peers.filter(id => id !== peer.id);
+      peerCountEl.textContent = others.length;
+
+      if (others.length === 0) {
+        peerList.innerHTML = `<p style="color: #71717a;">No other peers in the room. Open another window to test!</p>`;
+        return;
+      }
+
+      peerList.innerHTML = others.map(id => `
+        <div class="peer-item">
+          <span><code>${id}</code></span>
+          <button onclick="startTransfer('${id}')">Send File</button>
+        </div>
+      `).join('');
+    }
+    /*
+      =========================================================================
+      END OF PEERBASKET SIGNALING LOGIC
+      =========================================================================
+    */
+
+    // Connect to a peer and setup the interface
+    window.startTransfer = function(remoteId) {
+      statusEl.textContent = `Connecting to ${remoteId}...`;
+      const conn = peer.connect(remoteId, { serialization: "binary" });
+      setupConnection(conn);
+    };
+
+    function setupConnection(conn) {
+      currentConnection = conn;
+
+      conn.on("open", () => {
+        statusEl.textContent = "Connected";
+        partnerTitle.textContent = `File sharing with: ${conn.peer}`;
+        transferArea.style.display = "block";
+        fileInput.disabled = false;
+        progressEl.textContent = "Select a file to send or wait for incoming...";
+      });
+
+      let meta = null;
+
+      conn.on("data", (data) => {
+        if (!meta) {
+          // Received metadata
+          meta = data;
+          progressEl.textContent = `Receiving "${meta.name}"...`;
+          return;
+        }
+
+        // Received binary file
+        const blob = new Blob([data], { type: meta.type });
+        const url = URL.createObjectURL(blob);
+        progressEl.innerHTML = `⬇️ <a href="${url}" download="${meta.name}">Download ${meta.name} (${meta.size} bytes)</a>`;
+        meta = null; // Reset for next file
+      });
+
+      conn.on("close", () => {
+        if (currentConnection === conn) {
+          currentConnection = null;
+        }
+        statusEl.textContent = "Lobby joined";
+        transferArea.style.display = "none";
+        fileInput.disabled = true;
+        progressEl.textContent = "";
+      });
+
+      conn.on("error", (err) => {
+        console.error("Connection error:", err);
+        conn.close();
+      });
+    }
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file || !currentConnection) return;
+
+      progressEl.textContent = `Sending "${file.name}"...`;
+      // Send file metadata first
+      currentConnection.send({ name: file.name, type: file.type, size: file.size });
+      // Send raw binary buffer
+      currentConnection.send(await file.arrayBuffer());
+      progressEl.textContent = `File "${file.name}" sent successfully!`;
+      fileInput.value = "";
+    });
+  </script>
+</body>
+</html>
