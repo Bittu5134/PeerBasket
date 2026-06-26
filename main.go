@@ -13,6 +13,7 @@ import (
 
         "embed"
         "github.com/gin-contrib/cors"
+        "github.com/gin-contrib/gzip"
         "github.com/gin-gonic/gin"
         "net/http"
 
@@ -44,6 +45,7 @@ func serveRawFile(c *gin.Context, filepath string, contentType string) {
                 c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
                 return
         }
+        c.Header("Cache-Control", "public, max-age=1800, s-maxage=3600")
         c.Data(http.StatusOK, contentType, data)
 }
 
@@ -65,20 +67,31 @@ func main() {
                 DB:   0,
         })
 
-        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-        defer cancel()
-        if _, err := rdb.Ping(ctx).Result(); err != nil {
+        var err error
+        for i := 1; i <= 5; i++ {
+                ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+                _, err = rdb.Ping(ctx).Result()
+                cancel()
+                if err == nil {
+                        break
+                }
+                slog.Warn("Redis not ready, retrying...", "attempt", i, "error", err)
+                time.Sleep(2 * time.Second)
+        }
+        if err != nil {
                 log.Fatalf("Redis connection failed: %v", err)
         }
 
         corsConfig := cors.Config{
                 AllowAllOrigins: true,
-                AllowMethods:    []string{http.MethodGet, http.MethodPost, http.MethodOptions},
-                AllowHeaders:    []string{"Origin", "Content-Type", "Accept", "Authorization"},
+                AllowMethods:    []string{http.MethodGet, http.MethodPost, http.MethodOptions, http.MethodPut, http.MethodDelete},
+                AllowHeaders:    []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+                MaxAge:          12 * time.Hour,
         }
 
         router := gin.Default()
         router.Use(cors.New(corsConfig))
+        router.Use(gzip.Gzip(gzip.DefaultCompression))
         _ = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
         server := NewServer(rdb)
@@ -127,6 +140,16 @@ func (s *Server) handleBasket(c *gin.Context) {
         var req JoinRequest
         if err := c.ShouldBindJSON(&req); err != nil {
                 c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body. 'peer_id' is required and must be a valid string."})
+                return
+        }
+
+        if !isValidID(basketID) {
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'basket_id'. Must be 1-64 characters long and contain only alphanumeric characters, hyphens, underscores, dots, or colons."})
+                return
+        }
+
+        if !isValidID(req.PeerID) {
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'peer_id'. Must be 1-64 characters long and contain only alphanumeric characters, hyphens, underscores, dots, or colons."})
                 return
         }
 
@@ -187,5 +210,30 @@ func (s *Server) handleNoRoute(c *gin.Context) {
 }
 
 func (s *Server) handlePing(c *gin.Context) {
+        ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
+        defer cancel()
+
+        if err := s.rdb.Ping(ctx).Err(); err != nil {
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "status":  "Error",
+                        "message": "Redis connection offline",
+                        "error":   err.Error(),
+                })
+                return
+        }
+
         c.JSON(http.StatusOK, gin.H{"status": "A-OK!", "message": "Mostly harmless..."})
+}
+
+func isValidID(id string) bool {
+        if len(id) == 0 || len(id) > 64 {
+                return false
+        }
+        for i := 0; i < len(id); i++ {
+                ch := id[i]
+                if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' || ch == '_' || ch == '.' || ch == ':') {
+                        return false
+                }
+        }
+        return true
 }

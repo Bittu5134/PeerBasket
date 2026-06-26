@@ -4,6 +4,7 @@ go 1.26
 
 require (
 	github.com/gin-contrib/cors v1.7.7
+	github.com/gin-contrib/gzip v1.2.6
 	github.com/gin-gonic/gin v1.12.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.20.1
