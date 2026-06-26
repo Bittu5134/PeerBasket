@@ -1,114 +1,103 @@
 <div align="center">
-  <a href="https://peerbasket.bittu.dev/">
-    <img src="./public/banner.webp" alt="PeerBasket Banner" width="100%" style="border-radius: 12px;" />
-  </a>
 
-  <br />
-  <br />
+<a href="https://peerbasket.bittu.dev">
+    <img src="./public/banner.webp" alt="PeerBasket logo" title="PeerBasket logo" width="800"/>
+</a>
+<br />
 
-  **A hassle-free, zero-config, lobby-based peer discovery API for PeerJS.**
+# PeerBasket
 
-  [![GitHub Release](https://img.shields.io/github/v/release/Bittu5134/PeerBasket?style=flat-square&color=emerald)](https://github.com/Bittu5134/PeerBasket/releases)
-  [![Go Report Card](https://goreportcard.com/badge/github.com/Bittu5134/PeerBasket?style=flat-square)](https://goreportcard.com/report/github.com/Bittu5134/PeerBasket)
-  [![License](https://img.shields.io/github/license/Bittu5134/PeerBasket?style=flat-square&color=blue)](LICENSE)
-  [![Discord](https://img.shields.io/discord/877508637814300683?label=Discord&logo=discord&style=flat-square)](https://discord.gg/CZdNvKaNNr)
-  [![Patreon](https://img.shields.io/badge/Patreon-Support-coral?style=flat-square&logo=patreon)](https://www.patreon.com/cw/LazyBittu)
+### A hassle-free, lobby-based PeerJS discovery server.
+
+[![API Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpeerbasket.bittu.dev%2Fping&query=%24.status&style=flat-square&label=API+Status&color=success)](https://peerbasket.bittu.dev/)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/Bittu5134/PeerBasket?style=flat-square&color=00ADD8&logo=go&logoColor=white)](https://github.com/Bittu5134/PeerBasket)
+[![GitHub Release](https://img.shields.io/github/v/release/Bittu5134/PeerBasket?style=flat-square&color=purple)](https://github.com/Bittu5134/PeerBasket/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/bittu5134/peerbasket/deploy.yml?style=flat-square&label=build)](https://github.com/Bittu5134/PeerBasket/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Bittu5134/PeerBasket?style=flat-square)](https://goreportcard.com/report/github.com/Bittu5134/PeerBasket)
+[![License: MIT](https://img.shields.io/github/license/Bittu5134/PeerBasket?style=flat-square&color=blue)](/LICENSE)
+[![Discord](https://img.shields.io/discord/877508637814300683?label=discord&logo=discord&style=flat-square&color=7289da)](https://discord.gg/CZdNvKaNNr)
+
 </div>
 
 ---
 
-## 🧺 What is PeerBasket?
+### The Problem
+WebRTC enables two browsers to connect directly, but only after they exchange Peer IDs. WebRTC has no built-in way for peers to find each other in the first place, forcing developers to configure stateful signaling servers or databases just to bootstrap a connection.
 
-[PeerJS](https://peerjs.com/) lets two browsers open a direct WebRTC peer-to-peer connection, but it has no built-in way for two peers to find each other in the first place (unless they share IDs out-of-band).
+### The Solution
+PeerBasket solves this with a stateless, zero-configuration HTTP API. You POST your Peer ID to a room name (a basket), and receive a list of other active Peer IDs currently in it. These IDs are then passed to PeerJS to establish direct WebRTC connections.
 
-**PeerBasket solves this.** You send your Peer ID to a "basket" (a shared text string like `room-101`), and PeerBasket sends back the IDs of everyone else currently in that basket. No complex signaling infrastructure required.
+### Key Features
+* **Zero Config**: No signups, databases, or room setups. Just call the API endpoint.
+* **Auto-Pruning**: Inactive peer heartbeats are automatically purged after 30 seconds to clean up empty lobbies.
+* **Hosted Public Node**: A free public instance runs at `https://peerbasket.bittu.dev`.
 
-A free, hosted public instance is running right now at: **[`peerbasket.bittu.dev`](https://peerbasket.bittu.dev/)**
-
-## ⚡ Quickstart
-
-Using PeerBasket is as simple as a single `fetch` request. Send your ID, get the other IDs back, and connect.
-
-```javascript
-const peer = new Peer(); // from the peerjs package
-
-peer.on('open', async (myId) => {
-  // 1. Register your ID in a basket
-  const res = await fetch('https://peerbasket.bittu.dev/basket/my-awesome-room', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ peer_id: myId })
-  });
-
-  // 2. Get everyone else's IDs
-  const { peers } = await res.json();
-
-  // 3. Connect to them!
-  peers
-    .filter(id => id !== myId)
-    .forEach(id => peer.connect(id));
-});
-```
-
-> [!NOTE]
-> The public API is rate-limited to 20 requests per minute. Polling **every 10 seconds** is the recommended sweet spot.
-
-## 📚 Examples & Documentation
-
-We don't want to clutter this README! We've built out a complete suite of copy-pasteable examples showing you how to build real apps with PeerBasket.
-
-Check out the **[`./examples`](./examples)** folder for:
-
-* 💬 **Group Chat Mesh:** Full multi-peer broadcast messaging.
-* 📁 **File Transfer:** Sending raw binary files/Blobs directly between browsers.
-* 🎥 **Video Calling:** Exchanging media streams.
-* ⚛️ **React Matchmaking:** Using PeerBasket in a modern React/JSX frontend.
-* 💻 **Terminal:** Using PeerBasket with Node.js.
-
-For full API schema documentation, security considerations, and best practices, visit the **[official documentation website](https://peerbasket.bittu.dev/)**.
-
-## 🛠️ Self-Hosting
-
-Want to run your own private instance of PeerBasket instead of using the public API? It's incredibly lightweight.
-
-### Prerequisite
-
-PeerBasket uses **Redis** to instantly manage expiring heartbeats and cluster state. You must have Redis running locally (default: `localhost:6379`) or accessible via the `REDIS_ADDR` environment variable.
-
-### Method 1: The Easy Way (Pre-built Binaries) ✨
-
-You don't even need to install Go! We compile single-file, zero-dependency executables for Windows, macOS, and Linux.
-
-1. Go to the **[Releases Tab](https://github.com/Bittu5134/PeerBasket/releases)**.
-2. Download the binary for your operating system.
-3. Run the executable. It will automatically host the API and serve the dashboard on port `8080`.
-
-### Method 2: Build from Source
-
-If you prefer to compile it yourself, you will need [Go](https://golang.org/dl/) installed.
-
-```bash
-# Clone the repo
-git clone https://github.com/Bittu5134/PeerBasket.git
-cd PeerBasket
-
-# Install dependencies
-go mod tidy
-
-# Run the server
-go run .
-```
-
-*Optional environment variables: `PORT=3000`, `REDIS_ADDR=127.0.0.1:6379`*
-
-## 🤝 Support & Links
-
-PeerBasket is built solo by **[Bittu](https://bittu.dev/)** and provided completely open-source with no strings attached.
-
-If this tool saved you the headache of building a signaling server from scratch, consider supporting the project:
-
-* ⭐ **Star this repository**
-* 💖 **[Support me on Patreon](https://www.patreon.com/cw/LazyBittu)**
-* 💬 **[Join the Discord Server](https://discord.gg/CZdNvKaNNr)**
+For full rate limits, security details, and API schemas, refer to the [API Documentation](https://peerbasket.bittu.dev).
 
 ---
+
+### Quickstart
+
+Register your Peer ID and fetch other active peers in a basket with one POST request:
+
+```javascript
+const response = await fetch('https://peerbasket.bittu.dev/basket/my-room-id', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ peer_id: 'my-peerjs-id' })
+});
+const { peers } = await response.json();
+
+// Connect to everyone else in the room
+peers
+  .filter(id => id !== 'my-peerjs-id')
+  .forEach(id => peer.connect(id));
+```
+
+To see client integrations, check out the [Examples Directory](./examples):
+
+---
+
+### Self-Hosting
+
+Requires **Redis** (running locally or accessible via `REDIS_ADDR` environment variable).
+
+#### Option A: Using Release Binaries (Recommended)
+1. Download the pre-compiled binary for your system from the [Releases Page](https://github.com/Bittu5134/PeerBasket/releases).
+2. Create a `.env` file in the same directory:
+   ```env
+   PORT=8080
+   GIN_MODE=release
+   REDIS_ADDR=127.0.0.1:6379
+   ```
+3. Run the binary:
+   * **Linux / macOS**:
+     ```bash
+     chmod +x peerbasket-linux-amd64 && ./peerbasket-linux-amd64
+     ```
+   * **Windows**:
+     ```powershell
+     .\peerbasket-windows-amd64.exe
+     ```
+
+#### Option B: Building from Source
+1. **Prerequisite**: Install Go 1.26+.
+2. Clone, install dependencies, and run:
+   ```bash
+   git clone https://github.com/Bittu5134/PeerBasket.git
+   cd PeerBasket
+   go mod tidy
+   go run .
+   ```
+
+---
+
+### Support & Sponsorship
+If PeerBasket helps your project, please consider supporting development costs:
+* **Patreon**: Support directly via [Patreon](https://www.patreon.com/cw/LazyBittu).
+* **Community**: Join discussions on [Discord](https://discord.gg/CZdNvKaNNr).
+
+---
+
+### License
+Distributed under the MIT License. See [LICENSE](./LICENSE) for details.
