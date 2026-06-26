@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag Name (e.g. v1.0.0)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -74,12 +79,19 @@ jobs:
       - name: Generate Release Tag Name
         id: tag_name
         run: |
-          # Use the git tag if available, fallback to manual execution date if run manually
-          if [ "${{ github.ref_type }}" = "tag" ]; then
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            echo "tag=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           else
             echo "tag=manual-build-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
           fi
+
+      - name: Generate Checksums
+        run: |
+          cd ./binaries
+          sha256sum * > ../checksums.txt
+          cat ../checksums.txt
 
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
@@ -94,3 +106,4 @@ jobs:
             ./binaries/peerbasket-windows-amd64.exe
             ./binaries/peerbasket-mac-amd64
             ./binaries/peerbasket-mac-arm64
+            checksums.txt
