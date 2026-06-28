@@ -9,9 +9,9 @@
 
 ### A hassle-free, lobby-based PeerJS discovery server.
 
-[![API Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpeerbasket.bittu.dev%2Fping&query=%24.status&style=flat-square&label=API+Status&color=success)](https://peerbasket.bittu.dev/)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/Bittu5134/PeerBasket?style=flat-square&color=00ADD8&logo=go&logoColor=white)](https://github.com/Bittu5134/PeerBasket)
-[![GitHub Release](https://img.shields.io/github/v/release/Bittu5134/PeerBasket?style=flat-square&color=purple)](https://github.com/Bittu5134/PeerBasket/releases)
+[![API Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpeerbasket.bittu.dev%2Fping&query=%24.status&style=flat-square&label=API+Status&color=brightgreen)](https://peerbasket.bittu.dev/)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/Bittu5134/PeerBasket?style=flat-square&logo=go&logoColor=white)](https://github.com/Bittu5134/PeerBasket)
+[![GitHub Release](https://img.shields.io/github/v/release/Bittu5134/PeerBasket?style=flat-square)](https://github.com/Bittu5134/PeerBasket/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/bittu5134/peerbasket/deploy.yml?style=flat-square&label=build)](https://github.com/Bittu5134/PeerBasket/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Bittu5134/PeerBasket?style=flat-square)](https://goreportcard.com/report/github.com/Bittu5134/PeerBasket)
 [![License: MIT](https://img.shields.io/github/license/Bittu5134/PeerBasket?style=flat-square&color=blue)](/LICENSE)
