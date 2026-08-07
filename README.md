@@ -13,7 +13,6 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/Bittu5134/PeerBasket?style=flat-square&logo=go&logoColor=white)](https://github.com/Bittu5134/PeerBasket)
 [![GitHub Release](https://img.shields.io/github/v/release/Bittu5134/PeerBasket?style=flat-square)](https://github.com/Bittu5134/PeerBasket/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/bittu5134/peerbasket/deploy.yml?style=flat-square&label=build)](https://github.com/Bittu5134/PeerBasket/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Bittu5134/PeerBasket?style=flat-square)](https://goreportcard.com/report/github.com/Bittu5134/PeerBasket)
 [![License: MIT](https://img.shields.io/github/license/Bittu5134/PeerBasket?style=flat-square&color=blue)](/LICENSE)
 [![Discord](https://img.shields.io/discord/877508637814300683?label=discord&logo=discord&style=flat-square&color=7289da)](https://discord.gg/CZdNvKaNNr)
 
@@ -89,6 +88,13 @@ Requires **Redis** (running locally or accessible via `REDIS_ADDR` environment v
    go mod tidy
    go run .
    ```
+
+---
+
+### CLI Showcase
+
+![cli_example](./public/cli_example.png)
+
 
 ---
 
