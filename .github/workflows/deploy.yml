@@ -47,7 +47,7 @@ jobs:
           rsync -avz \
             -e "ssh -i ~/.ssh/id_ed25519" \
             ./server \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/peerbasket/server || true
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/root/peerbasket/server || true
 
       - name: Verify Upload
         run: |
@@ -55,7 +55,7 @@ jobs:
           
           # Use '|| true' to absorb the 255 exit code without adding text to the variable
           REMOTE_HASH=$(ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "sha256sum /opt/peerbasket/server | cut -d' ' -f1" || true)
+            "sha256sum /root/peerbasket/server | cut -d' ' -f1" || true)
 
           echo "Local:  $LOCAL_HASH"
           echo "Remote: $REMOTE_HASH"
@@ -70,4 +70,4 @@ jobs:
       - name: Restart Service
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "chmod +x /opt/peerbasket/server && systemctl restart peerbasket && systemctl status peerbasket --no-pager" || true
+            "chmod +x /root/peerbasket/server && systemctl restart peerbasket && systemctl status peerbasket --no-pager" || true
