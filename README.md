@@ -1,46 +1,33 @@
 <div align="center">
 
-<a href="https://peerbasket.bittu.dev">
-    <img src="./public/banner.webp" alt="PeerBasket logo" title="PeerBasket logo" width="800"/>
-</a>
-<br />
+<img src="./public/banner.webp" alt="PeerBasket banner" width="800">
 
 # PeerBasket
 
 ### A hassle-free, lobby-based PeerJS discovery server.
 
+
 [![API Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpeerbasket.bittu.dev%2Fping&query=%24.status&style=flat-square&label=API+Status&color=brightgreen)](https://peerbasket.bittu.dev/)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/Bittu5134/PeerBasket?style=flat-square&logo=go&logoColor=white)](https://github.com/Bittu5134/PeerBasket)
-[![GitHub Release](https://img.shields.io/github/v/release/Bittu5134/PeerBasket?style=flat-square)](https://github.com/Bittu5134/PeerBasket/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/bittu5134/peerbasket/deploy.yml?style=flat-square&label=build)](https://github.com/Bittu5134/PeerBasket/actions)
-[![License: MIT](https://img.shields.io/github/license/Bittu5134/PeerBasket?style=flat-square&color=blue)](/LICENSE)
 [![Discord](https://img.shields.io/discord/877508637814300683?label=discord&logo=discord&style=flat-square&color=7289da)](https://discord.gg/CZdNvKaNNr)
+[![Live Documentation](https://img.shields.io/badge/Docs-Read-indigo?style=flat-square)](https://peerbasket.bittu.dev)
 
 </div>
 
----
+## How It Works
 
-### The Problem
-WebRTC enables two browsers to connect directly, but only after they exchange Peer IDs. WebRTC has no built-in way for peers to find each other in the first place, forcing developers to configure stateful signaling servers or databases just to bootstrap a connection.
+- WebRTC enables browsers to connect directly, but they need to exchange Peer IDs first.
+- PeerBasket acts as a zero-config discovery lobby
+- Send a `POST` request with your `peer_id` under a shared room name (a basket).
+- The server responds with the list of other active Peer IDs currently in that basket.
+- Connect directly to everyone returned using [PeerJS](https://peerjs.com/).
+- Inactive peer heartbeats are automatically pruned after **30 seconds**.
 
-### The Solution
-PeerBasket solves this with a stateless, zero-configuration HTTP API. You POST your Peer ID to a room name (a basket), and receive a list of other active Peer IDs currently in it. These IDs are then passed to PeerJS to establish direct WebRTC connections.
+## Quickstart
 
-### Key Features
-* **Zero Config**: No signups, databases, or room setups. Just call the API endpoint.
-* **Auto-Pruning**: Inactive peer heartbeats are automatically purged after 30 seconds to clean up empty lobbies.
-* **Hosted Public Node**: A free public instance runs at `https://peerbasket.bittu.dev`.
-
-For full rate limits, security details, and API schemas, refer to the [API Documentation](https://peerbasket.bittu.dev).
-
----
-
-### Quickstart
-
-Register your Peer ID and fetch other active peers in a basket with one POST request:
+Register your Peer ID and fetch active peers in a room with a single request:
 
 ```javascript
-const response = await fetch('https://peerbasket.bittu.dev/basket/my-room-id', {
+const response = await fetch('https://peerbasket.bittu.dev/basket/my-room', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ peer_id: 'my-peerjs-id' })
@@ -53,57 +40,44 @@ peers
   .forEach(id => peer.connect(id));
 ```
 
-To see client integrations, check out the [Examples Directory](./examples):
+> [!TIP]
+> Poll this endpoint every 10 seconds to maintain your heartbeat and discover incoming peers.
 
----
+## Examples
 
-### Self-Hosting
+Ready-to-run interactive examples are in the [examples](./examples) directory:
 
-Requires **Redis** (running locally or accessible via `REDIS_ADDR` environment variable).
+- **[1:1 Matchmaker Chat](./examples/01-matchmaker-chat/index.html)** — Matches random peers and halts polling once connected.
+- **[P2P File Drop](./examples/02-local-file-drop/index.html)** — Direct browser-to-browser file transfer over data channels.
+- **[Group Video Room](./examples/03-group-video-chat/index.html)** — Multi-user video calls with dynamic peer discovery and pruning.
 
-#### Option A: Using Release Binaries (Recommended)
-1. Download the pre-compiled binary for your system from the [Releases Page](https://github.com/Bittu5134/PeerBasket/releases).
-2. Create a `.env` file in the same directory:
-   ```env
-   PORT=8080
-   GIN_MODE=release
-   REDIS_ADDR=127.0.0.1:6379
-   ```
-3. Run the binary:
-   * **Linux / macOS**:
-     ```bash
-     chmod +x peerbasket-linux-amd64 && ./peerbasket-linux-amd64
-     ```
-   * **Windows**:
-     ```powershell
-     .\peerbasket-windows-amd64.exe
-     ```
+## CLI Showcase
 
-#### Option B: Building from Source
-1. **Prerequisite**: Install Go 1.26+.
-2. Clone, install dependencies, and run:
-   ```bash
-   git clone https://github.com/Bittu5134/PeerBasket.git
-   cd PeerBasket
-   go mod tidy
-   go run .
-   ```
+<div align="center">
 
----
+<img src="./public/cli_example.png" width="800" alt="PeerBasket CLI curl request and response">
 
-### CLI Showcase
+</div>
 
-![cli_example](./public/cli_example.png)
+## Run Locally
 
+Requires **Redis** (running locally or accessible via `REDIS_ADDR`).
 
----
+```bash
+# Clone the repository
+git clone https://github.com/Bittu5134/PeerBasket.git && cd PeerBasket
 
-### Support & Sponsorship
-If PeerBasket helps your project, please consider supporting development costs:
-* **Patreon**: Support directly via [Patreon](https://www.patreon.com/cw/LazyBittu).
-* **Community**: Join discussions on [Discord](https://discord.gg/CZdNvKaNNr).
+# Run the server
+go run .
+```
 
----
+- `PORT` (default `8080`)
+- `REDIS_ADDR` (default `localhost:6379`)
+- `GIN_MODE`
 
-### License
-Distributed under the MIT License. See [LICENSE](./LICENSE) for details.
+> [!NOTE]
+> Pre-compiled binaries for Linux, macOS, and Windows are also available on the [Releases](https://github.com/Bittu5134/PeerBasket/releases) page.
+
+## Built Using
+
+[Go](https://go.dev) · [Gin](https://github.com/gin-gonic/gin) · [Redis](https://redis.io) · [PeerJS](https://peerjs.com)
